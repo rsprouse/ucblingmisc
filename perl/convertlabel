@@ -1,0 +1,222 @@
+#!/usr/bin/env perl
+
+# convertlabel - Convert phonetic label files from one format to another.
+
+# Authors: Ronald L. Sprouse (ronald@berkeley.edu)
+# 
+# Copyright (c) 2014, The Regents of the University of California
+# All rights reserved.
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# 
+# * Redistributions of source code must retain the above copyright notice, this
+#   list of conditions and the following disclaimer.
+# 
+# * Redistributions in binary form must reproduce the above copyright notice,
+#   this list of conditions and the following disclaimer in the documentation
+#   and/or other materials provided with the distribution.
+# 
+# * Neither the name of the University of California nor the names of its
+#   contributors may be used to endorse or promote products derived from
+#   this software without specific prior written permission.
+# 
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+# Originally written in 2011.
+
+my $Usage = "convertlabel --from type --to type [--tier N|name] [--ext extension] [--samedir] [--scale-by factor] [--shift-by time] --stdout infile1 [infileN...]\n\nconvertlabel --help";
+
+use strict;
+use warnings;
+
+use Getopt::Long;
+use File::Basename;
+use File::Spec;
+use SoundLabel;
+
+my $first_op = '';
+foreach (@ARGV) {
+  if ($_ eq '--scale-by') {
+    $first_op = 'scale';
+    last;
+  }
+  elsif ($_ eq '--shift-by') {
+    $first_op = 'shift';
+    last;
+  }
+}
+
+my $extension = '';
+my $from = '';
+my $to = '';
+my $tier   = '';
+my $use_inputdir = '';
+my $scale_by = '';
+my $shift_by = '';
+my $stdout = 0;
+GetOptions(
+            'help' => sub { print_help(); exit;},
+            'from=s' => \$from,
+            'to=s' => \$to,
+            'tier=s' => \$tier,
+            'ext=s' => \$extension,
+            'scale-by=f' => \$scale_by,
+            'shift-by=f' => \$shift_by,
+            'stdout' => \$stdout,
+            'samedir' => \$use_inputdir
+          );
+
+print(STDERR $Usage, "\n"), exit unless $from && $to && @ARGV;
+
+if ($extension eq '') {
+  $extension = $to =~ /praat/ ? '.TextGrid' : '.lab';
+}
+$extension = ".$extension" unless $extension =~ /^\./;
+
+foreach my $infile (@ARGV) {
+  my ($name,$path,$suffix) = fileparse($infile, qr{\.[^.]*});
+  my $outfile;
+  if ($stdout) {
+    $outfile = 'STDOUT';
+  } else {
+    $outfile = $name . $extension;
+  }
+  my $inlabel = SoundLabel->new($infile, $from);
+  if ($first_op eq 'scale') {
+    $inlabel->scale_by($scale_by);
+    $inlabel->shift_by($shift_by) if $shift_by;
+  }
+  elsif ($first_op eq 'shift') {
+    $inlabel->shift_by($shift_by);
+    $inlabel->scale_by($scale_by) if $scale_by;
+  }
+  if (!$tier and $inlabel->num_tiers() > 1) {
+    foreach my $tnum (1 .. $inlabel->num_tiers) {
+      if (!$stdout) {
+        $outfile = $name . "." . $tnum . $extension;
+        $outfile = File::Spec->catfile($path, $outfile) if $use_inputdir;
+      }
+      $inlabel->write_to_file($outfile, $to, $tnum);
+    }
+  }
+  else {
+    my $tierext = $tier eq '' ? '' : ".$tier";
+    if (!$stdout) {
+      $outfile = $name . $tierext . $extension;
+      $outfile = File::Spec->catfile($path, $outfile) if $use_inputdir;
+    }
+    $inlabel->write_to_file($outfile, $to, $tier);
+  }
+}
+
+sub print_help {
+  print <<EOF;
+convertlabel: Convert one or more label file tiers to another label file format.
+
+USAGE
+
+$Usage
+
+
+ARGUMENTS
+
+  --help
+    Print this message and quit.
+
+  --from type
+    Specify the input file type. Must be one of 'praat', 'praat_short',
+    'wavesurfer', or 'esps'.
+
+  --to type
+    Specify the output file type. Must be one of 'praat_short', 'wavesurfer',
+    or 'esps'. The 'praat' output format is not yet implemented in the
+    underlying library.
+
+  --tier N (optional; default all tiers)
+    Specify the label tier number to convert. Numbering starts at 1.
+
+    If --tier is not used and the input file contains multiple label tiers,
+    all the tiers will be converted in separate output files.
+
+    If --tier is used or if the input file contains multiple tiers, the
+    tier number will be added to the output filename, e.g. output.1.lab,
+    output.2.lab.
+
+  --ext extension (optional)
+    Specify a filename extension to be used for the output files.
+    Default values are '.TextGrid' for 'praat' and 'praat_short'
+    output formats, and '.lab' for 'esps' and 'wavesurfer' formats.
+
+  --samedir (optional)
+    Produce the output file in the same directory as the input file.
+    If not specified the default destination is the current working directory.
+
+  --stdout (boolean; optional)
+    If present, print to STDOUT instead of the usual output files.
+
+  --scale-by factor (optional)
+    Scale each start and end time of each tier of each file by multiplying
+    by the specified factor.
+
+    If used with --shift-by, the operations will be applied in the order
+    given on the command line.
+
+  --shift-by time (optional)
+    Shift each start and end time of each tier of each file by adding
+    the specified time.
+
+    If used with --scale-by, the operations will be applied in the order
+    given on the command line.
+
+  infile [infileN...]
+    A list of input label files to be converted.
+
+
+EXAMPLES
+
+  * Convert all tiers of a all 'praat' TextGrid files in a directory to esps
+  format:
+
+    convertlabel --from praat --to esps *.TextGrid
+
+  The output files will be file1.1.lab, file1.2.lab, file1.N.lab...;
+  file2.1.lab, file2.2.lab, file2.N.lab...
+
+  * Convert tier 2 of an 'esps' label file to a 'praat' TextGrid with
+  the extension '.tgrid':
+
+    convertlabel --from esps --to praat --tier 2 --ext .tgrid infile.lab
+
+  The output file will be infile.2.tgrid.
+
+  * Convert a file and write the output to the file's directory rather
+  than the current working directory:
+
+    convertlabel --from esps --to praat --samedir /path/to/file.lab
+
+  The output file will be /path/to/file.TextGrid.
+
+  * Convert a file from 'praat' to 'esps' and scale times by 10:
+
+    convertlabel --from praat --to esps --scale-by 10 file.tgrid
+
+  * Convert a file from 'praat' to 'esps', first shifting times by 0.5,
+    then scaling times by 0.1:
+
+    convertlabel --from praat --to esps --shift-by 0.5 --scale-by 0.1 file.tgrid
+
+EOF
+;
+
+}
+
