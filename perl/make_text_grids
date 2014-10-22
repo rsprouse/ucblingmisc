@@ -1,0 +1,92 @@
+#!/usr/bin/env perl
+
+use File::Basename;
+use SoundLabel;
+
+#----------------------------
+#For example,   ./make_text_grids transcript.txt sound.wav
+#----------------------------
+
+# Authors: Keith Johnson (keithjohnson@berkeley.edu)
+# 
+# Copyright (c) 2014, The Regents of the University of California
+# All rights reserved.
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# 
+# * Redistributions of source code must retain the above copyright notice, this
+#   list of conditions and the following disclaimer.
+# 
+# * Redistributions in binary form must reproduce the above copyright notice,
+#   this list of conditions and the following disclaimer in the documentation
+#   and/or other materials provided with the distribution.
+# 
+# * Neither the name of the University of California nor the names of its
+#   contributors may be used to endorse or promote products derived from
+#   this software without specific prior written permission.
+# 
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+$TL = $ARGV[0];
+$wav = $ARGV[1];
+$start=0;
+$end = 1000000000;
+
+die "$TL: $!\n" unless (-e $TL);
+die "$wav: $!\n" unless (-e $wav);
+
+$start = 0;
+$count = 1;
+
+open (IN, "<$TL") or die "open $TL failed: $!\n";
+open (OUT, ">temp.txt") or die "open temp.txt failed $!\n";
+
+$tgrid_name = basename($wav,".wav");
+$outname = $tgrid_name.".TextGrid";
+
+if (-e $outname) {
+    $old_tgrid = $outname.".old";
+    `mv $outname $old_tgrid`;
+}
+
+while (<IN>) {
+#    print $_;
+    if (/^#(.+)/) {
+	($end,$temp) = split(/,/,$1);
+	print "\n-- $end, $temp  --\n";
+	if ($end>$start) {
+	    close OUT;
+	    $outname = $tgrid_name."_".$count.".TextGrid";
+
+	    print "pyalign -s $start -e $end $wav temp.txt $outname\n";
+
+	    `pyalign -s $start -e $end $wav temp.txt $outname`;
+
+	    `rm -r tmp`;
+	    
+	    $count++;
+	    open (OUT, ">temp.txt") or die "open temp.txt failed $!\n";
+	}
+	$start=$temp;
+    } else {printf OUT $_;}
+}
+
+`rm temp.txt`;
+
+# now that we have made a bunch of textgrids, let's concatenate them
+$outname = $tgrid_name.".TextGrid";
+
+`concat_pyalign_textgrids --ofile $outname $tgrid_name*.TextGrid`;
+
+`rm *_[0-9]*.TextGrid`;
