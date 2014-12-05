@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# Run the p2fa align.py script with the python executable, passing all
+# input arguments to align.py.
+
+# We do this because if we symlink align.py into /usr/local/bin then
+# align.py won't find the acoustic models.
+
+# RLS 10/26/2010
+
+PYTHON=/usr/bin/python
+ALIGN=/opt/p2fa/align.py
+
+# NOTE: Simply executing with backticks doesn't work right:
+# `$PYTHON $ALIGN $@`    <--- Don't do this
+
+fun="$PYTHON $ALIGN $@"
+eval $fun
