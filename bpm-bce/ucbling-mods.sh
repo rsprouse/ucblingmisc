@@ -73,12 +73,16 @@ EOF
 
 apt_get_packages "$STDPKGS" "BPM-BCE: Installing Linguistics packages from standard repositories..."
 
-# Add neurodebian repository for opensesame packages.
+# Add neurodebian and sil.org repositories.
 msg="BPM-BCE: Adding Linguistics repositories..."
 echo "$msg"
+# neurodebian
 wget -O- http://neuro.debian.net/lists/trusty.us-ca.full | \
 tee /etc/apt/sources.list.d/neurodebian.sources.list && \
 apt-key adv --recv-keys --keyserver hkp://pgp.mit.edu:80 2649A5A9 && \
+# sil.org
+echo "deb http://packages.sil.org/ubuntu trusty main" > /etc/apt/sources.list.d/sil.sources.list && \
+wget http://packages.sil.org/sil.gpg -O- | apt-key add - && \
 ( echo DONE: $msg ; etckeeper commit "$msg" ) || echo FAIL: $msg
 
 # Packages from the neurodebian repository.
@@ -87,6 +91,13 @@ opensesame
 EOF
 
 apt_get_packages "$NEUROPKGS" "BPM-BCE: Installing Linguistics packages from neurodebian repository..."
+
+# Packages from the neurodebian repository.
+define SILPKGS <<'EOF'
+fieldworks-applications
+EOF
+
+apt_get_packages "$SILPKGS" "BPM-BCE: Installing Linguistics packages from sil.org repository..."
 
 
 # Python packages to pull and set up from github.
@@ -230,5 +241,5 @@ cd $ORIGDIR
 #cd $ORIGDIR
 
 
-# TODO: voicesauce, fieldworks, flowanalyzer
+# TODO: voicesauce, flowanalyzer, ffmpeg
 # TODO: remove pulseaudio? get audio working!
