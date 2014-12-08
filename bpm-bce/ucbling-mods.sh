@@ -83,22 +83,26 @@ apt-key adv --recv-keys --keyserver hkp://pgp.mit.edu:80 2649A5A9 && \
 # sil.org
 echo "deb http://packages.sil.org/ubuntu trusty main" > /etc/apt/sources.list.d/sil.sources.list && \
 wget http://packages.sil.org/sil.gpg -O- | apt-key add - && \
+# ppa for ffmpeg
+add-apt-repository ppa:mc3man/trusty-media && \
 ( echo DONE: $msg ; etckeeper commit "$msg" ) || echo FAIL: $msg
 
 # Packages from the neurodebian repository.
 define NEUROPKGS <<'EOF'
 opensesame
 EOF
-
 apt_get_packages "$NEUROPKGS" "BPM-BCE: Installing Linguistics packages from neurodebian repository..."
 
-# Packages from the neurodebian repository.
+# Packages from the sil.org repository.
 define SILPKGS <<'EOF'
 fieldworks-applications
 EOF
-
 apt_get_packages "$SILPKGS" "BPM-BCE: Installing Linguistics packages from sil.org repository..."
 
+define FFMPEGPKGS <<'EOF'
+ffmpeg
+EOF
+apt_get_packages "$FFMPEGPKGS" "BPM-BCE: Installing Linguistics packages from ffmpeg repository..."
 
 # Python packages to pull and set up from github.
 GITBASE=https://github.com/rsprouse
