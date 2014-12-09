@@ -43,6 +43,7 @@ apt-get update
 
 # These are packages that install from repositories already enabled in BCE.
 define STDPKGS <<'EOF'
+imagemagick
 praat
 sox
 wavesurfer
