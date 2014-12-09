@@ -24,7 +24,7 @@ apt_get_packages(){
     # The quotation marks around ${1} preserves newlines.
     $APT_GET install $(grep '^[^#]' <(echo "${1}")) && \
     $APT_GET clean && \ # help avoid running out of disk space
-    echo DONE: ${2}  || echo FAIL: ${2}
+    ( echo DONE: ${2} ; etckeeper commit "$msg" ) || echo FAIL: ${2}
 }
 
 # Clone and set up python package from github.
@@ -68,6 +68,7 @@ libc6-dev-i386
 libx11-dev:i386
 
 # Needed for EdgeTrak
+# TODO: wine depends on ttt-mscorefont-installer and requires user to accept a license agreement
 wine
 EOF
 
@@ -94,6 +95,7 @@ EOF
 apt_get_packages "$NEUROPKGS" "BPM-BCE: Installing Linguistics packages from neurodebian repository..."
 
 # Packages from the sil.org repository.
+# TODO: fieldworks requires user to accept a license agreement
 define SILPKGS <<'EOF'
 fieldworks-applications
 EOF
@@ -149,7 +151,7 @@ wget https://raw.githubusercontent.com/rsprouse/ucblingmisc/master/perl/concat_p
 wget https://raw.githubusercontent.com/rsprouse/ucblingmisc/master/perl/convertlabel && \
 wget https://raw.githubusercontent.com/rsprouse/ucblingmisc/master/perl/make_text_grids && \
 wget https://raw.githubusercontent.com/rsprouse/ucblingmisc/master/python/fricative_analysis.py && \
-echo DONE: $msg  || echo FAIL: $msg
+( echo DONE: $msg ; etckeeper commit "$msg" ) || echo FAIL: $msg
 cd $ORIGDIR
 
 # Install ifcformant.
@@ -160,7 +162,7 @@ wget https://github.com/rsprouse/ucblingmisc/raw/master/ifcformant-bpm/ifcforman
 tar xf ifcformant-bpm-bce.tar && \
 cd ifcformant-bpm-bce && \
 ./install-bpm.sh && \
-echo DONE: $msg || echo "FAIL (install-bpm.sh):" $msg
+( echo DONE: $msg ; etckeeper commit "$msg" ) || echo FAIL: $msg
 cd $ORIGDIR
 
 # Install HTK.
@@ -196,7 +198,7 @@ if [ $username != '' ]; then
         tar xzvf p2fa_1.003.tgz && \
         cd /usr/local/bin && \
         wget https://raw.githubusercontent.com/rsprouse/ucblingmisc/master/python/pyalign && \
-        echo DONE: $msg || echo FAIL: $msg
+        ( echo DONE: $msg ; etckeeper commit "$msg" ) || echo FAIL: $msg
         cd $ORIGDIR
     fi
 fi
@@ -211,7 +213,7 @@ cd /opt
 wget http://speech.umaryland.edu/programs/Edgetrak.zip && \
 unzip Edgetrak.zip && \
 rm Edgetrak.zip && \
-echo DONE: $msg || echo FAIL: $msg
+( echo DONE: $msg ; etckeeper commit "$msg" ) || echo FAIL: $msg
 cd $ORIGDIR
 
 # Install Matlab MCR.
@@ -224,7 +226,7 @@ wget http://www.mathworks.com/supportfiles/downloads/R2014b/deployment_files/R20
 unzip MCR_R2014b_glnxa64_installer.zip && \
 ./install -mode silent -agreeToLicense yes -destinationFolder /opt/matlab/2014b && \
 rm MCR_R2014b_glnxa64_installer.zip && \
-echo DONE: $msg || echo FAIL: $msg
+( echo DONE: $msg ; etckeeper commit "$msg" ) || echo FAIL: $msg
 cd $ORIGDIR
 
 # Install display_acq.
@@ -235,7 +237,7 @@ echo $msg
 cd /usr/local/bin && \
 wget https://github.com/rsprouse/ucblingmisc/raw/master/display_acq-bpm/display_acq_2014b.tar && \
 tar xf display_acq_2014b.tar && \
-echo DONE: $msg || echo FAIL: $msg
+( echo DONE: $msg ; etckeeper commit "$msg" ) || echo FAIL: $msg
 cd $ORIGDIR
 
 
@@ -245,5 +247,5 @@ cd $ORIGDIR
 #cd $ORIGDIR
 
 
-# TODO: voicesauce, flowanalyzer, ffmpeg
+# TODO: voicesauce, flowanalyzer
 # TODO: remove pulseaudio? get audio working!
