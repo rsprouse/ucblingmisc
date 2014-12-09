@@ -38,8 +38,22 @@ python_clone_and_setup(){
     cd $ORIGDIR
 }
 
+# Add neurodebian and sil.org repositories.
+msg="BPM-BCE: Adding Linguistics repositories..."
+echo "$msg"
+# neurodebian
+wget -O- http://neuro.debian.net/lists/trusty.us-ca.full | \
+tee /etc/apt/sources.list.d/neurodebian.sources.list && \
+apt-key adv --recv-keys --keyserver hkp://pgp.mit.edu:80 2649A5A9 && \
+# sil.org
+echo "deb http://packages.sil.org/ubuntu trusty main" > /etc/apt/sources.list.d/sil.sources.list && \
+wget http://packages.sil.org/sil.gpg -O- | apt-key add - && \
+# ppa for ffmpeg
+add-apt-repository ppa:mc3man/trusty-media && \
+( echo DONE: $msg ; etckeeper commit "$msg" ) || echo FAIL: $msg
+
 # Package installs will fail if we are not up to date.
-apt-get update
+$APT_GET update
 
 # These are packages that install from repositories already enabled in BCE.
 define STDPKGS <<'EOF'
@@ -74,20 +88,6 @@ wine
 EOF
 
 apt_get_packages "$STDPKGS" "BPM-BCE: Installing Linguistics packages from standard repositories..."
-
-# Add neurodebian and sil.org repositories.
-msg="BPM-BCE: Adding Linguistics repositories..."
-echo "$msg"
-# neurodebian
-wget -O- http://neuro.debian.net/lists/trusty.us-ca.full | \
-tee /etc/apt/sources.list.d/neurodebian.sources.list && \
-apt-key adv --recv-keys --keyserver hkp://pgp.mit.edu:80 2649A5A9 && \
-# sil.org
-echo "deb http://packages.sil.org/ubuntu trusty main" > /etc/apt/sources.list.d/sil.sources.list && \
-wget http://packages.sil.org/sil.gpg -O- | apt-key add - && \
-# ppa for ffmpeg
-add-apt-repository ppa:mc3man/trusty-media && \
-( echo DONE: $msg ; etckeeper commit "$msg" ) || echo FAIL: $msg
 
 # Packages from the neurodebian repository.
 define NEUROPKGS <<'EOF'
