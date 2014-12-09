@@ -106,6 +106,21 @@ ffmpeg
 EOF
 apt_get_packages "$FFMPEGPKGS" "BPM-BCE: Installing Linguistics packages from ffmpeg repository..."
 
+# These are packages Lev is interested in.
+define LEVPKGS <<'EOF'
+mrbayes
+beast-mcmc
+EOF
+apt_get_packages "$LEVPKGS" "BPM-BCE: Installing Linguistics packages for phylogenetics..."
+msg="Installing Mesquite"
+echo $msg
+cd /opt && \
+wget https://github.com/MesquiteProject/MesquiteCore/releases/download/3.01/Mesquite301_Linux.tgz && \
+tar xf Mesquite301_Linux.tgz && \
+rm Mesquite301_Linux.tgz && \
+( echo DONE: $msg ; etckeeper commit "$msg" ) || echo FAIL: $msg
+cd $ORIGDIR
+
 # Python packages to pull and set up from github.
 GITBASE=https://github.com/rsprouse
 python_clone_and_setup $GITBASE klsyn
