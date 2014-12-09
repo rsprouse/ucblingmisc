@@ -8,6 +8,9 @@
 # from template:
 # VBoxManage setextradata <VM_NAME> VBoxInternal2/SharedFoldersEnableSymlinksCreate/<SHARE_NAME> 1
 
+# Record changes made.
+etckeeper init
+
 APT_GET="apt-get -q -y"
 #APT_GET="apt-get"
 ORIGDIR=`pwd`
@@ -24,7 +27,7 @@ apt_get_packages(){
     # The quotation marks around ${1} preserves newlines.
     $APT_GET install $(grep '^[^#]' <(echo "${1}")) && \
     $APT_GET clean && \ # help avoid running out of disk space
-    ( echo DONE: ${2} ; etckeeper commit "$msg" ) || echo FAIL: ${2}
+    echo DONE: ${2} || echo FAIL: ${2}
 }
 
 # Clone and set up python package from github.
@@ -50,7 +53,7 @@ echo "deb http://packages.sil.org/ubuntu trusty main" > /etc/apt/sources.list.d/
 wget http://packages.sil.org/sil.gpg -O- | apt-key add - && \
 # ppa for ffmpeg
 add-apt-repository ppa:mc3man/trusty-media && \
-( echo DONE: $msg ; etckeeper commit "$msg" ) || echo FAIL: $msg
+echo DONE: $msg || echo FAIL: $msg
 
 # Package installs will fail if we are not up to date.
 $APT_GET update
@@ -121,7 +124,7 @@ tar xf Mesquite301_Linux.tgz && \
 chmod +x /opt/Mesquite_Folder/mesquite.sh && \
 chown -R oski.oski /opt/Mesquite_Folder/ && \
 rm Mesquite301_Linux.tgz && \
-( echo DONE: $msg ; etckeeper commit "$msg" ) || echo FAIL: $msg
+echo DONE: $msg || echo FAIL: $msg
 cd $ORIGDIR
 
 # Python packages to pull and set up from github.
@@ -169,7 +172,7 @@ wget https://raw.githubusercontent.com/rsprouse/ucblingmisc/master/perl/concat_p
 wget https://raw.githubusercontent.com/rsprouse/ucblingmisc/master/perl/convertlabel && \
 wget https://raw.githubusercontent.com/rsprouse/ucblingmisc/master/perl/make_text_grids && \
 wget https://raw.githubusercontent.com/rsprouse/ucblingmisc/master/python/fricative_analysis.py && \
-( echo DONE: $msg ; etckeeper commit "$msg" ) || echo FAIL: $msg
+echo DONE: $msg || echo FAIL: $msg
 cd $ORIGDIR
 
 # Install ifcformant.
@@ -180,7 +183,7 @@ wget https://github.com/rsprouse/ucblingmisc/raw/master/ifcformant-bpm/ifcforman
 tar xf ifcformant-bpm-bce.tar && \
 cd ifcformant-bpm-bce && \
 ./install-bpm.sh && \
-( echo DONE: $msg ; etckeeper commit "$msg" ) || echo FAIL: $msg
+echo DONE: $msg || echo FAIL: $msg
 cd $ORIGDIR
 
 # Install HTK.
@@ -216,7 +219,7 @@ if [ $username != '' ]; then
         tar xzvf p2fa_1.003.tgz && \
         cd /usr/local/bin && \
         wget https://raw.githubusercontent.com/rsprouse/ucblingmisc/master/python/pyalign && \
-        ( echo DONE: $msg ; etckeeper commit "$msg" ) || echo FAIL: $msg
+        echo DONE: $msg || echo FAIL: $msg
         cd $ORIGDIR
     fi
 fi
@@ -231,10 +234,11 @@ cd /opt
 wget http://speech.umaryland.edu/programs/Edgetrak.zip && \
 unzip Edgetrak.zip && \
 rm Edgetrak.zip && \
-( echo DONE: $msg ; etckeeper commit "$msg" ) || echo FAIL: $msg
+echo DONE: $msg || echo FAIL: $msg
 cd $ORIGDIR
 
 # Install Matlab MCR.
+# TODO: mcr also involves agreeing to license
 msg="Installing Matlab runtime."
 echo $msg
 cd /usr/local/src && \
@@ -244,7 +248,7 @@ wget http://www.mathworks.com/supportfiles/downloads/R2014b/deployment_files/R20
 unzip MCR_R2014b_glnxa64_installer.zip && \
 ./install -mode silent -agreeToLicense yes -destinationFolder /opt/matlab/2014b && \
 rm MCR_R2014b_glnxa64_installer.zip && \
-( echo DONE: $msg ; etckeeper commit "$msg" ) || echo FAIL: $msg
+echo DONE: $msg || echo FAIL: $msg
 cd $ORIGDIR
 
 # Install display_acq.
@@ -255,7 +259,7 @@ echo $msg
 cd /usr/local/bin && \
 wget https://github.com/rsprouse/ucblingmisc/raw/master/display_acq-bpm/display_acq_2014b.tar && \
 tar xf display_acq_2014b.tar && \
-( echo DONE: $msg ; etckeeper commit "$msg" ) || echo FAIL: $msg
+echo DONE: $msg || echo FAIL: $msg
 cd $ORIGDIR
 
 
