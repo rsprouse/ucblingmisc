@@ -118,6 +118,8 @@ echo $msg
 cd /opt && \
 wget https://github.com/MesquiteProject/MesquiteCore/releases/download/3.01/Mesquite301_Linux.tgz && \
 tar xf Mesquite301_Linux.tgz && \
+chmod +x /opt/Mesquite_Folder/mesquite.sh && \
+chown -R oski.oski /opt/Mesquite_Folder/ && \
 rm Mesquite301_Linux.tgz && \
 ( echo DONE: $msg ; etckeeper commit "$msg" ) || echo FAIL: $msg
 cd $ORIGDIR
