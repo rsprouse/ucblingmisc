@@ -62,6 +62,7 @@ $APT_GET update
 define STDPKGS <<'EOF'
 imagemagick
 praat
+python-nltk
 sox
 wavesurfer
 
