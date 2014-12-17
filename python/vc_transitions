@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-{scriptname} [get_f0_args] wavfile
+Usage: {scriptname} [get_f0_args] wavfile
 
 Process input wavfile with esps utilities to find voicing transition points.
 Output a Praat textgrid to STDOUT with transitions to voiced state labelled
