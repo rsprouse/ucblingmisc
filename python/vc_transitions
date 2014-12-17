@@ -115,6 +115,7 @@ lm = audiolabel.LabelManager(
     t1_start=t1_start,          # autocreate t1 starting with this value and
     t1_step=t1_step)             # increase by this step
 
+# Create a label whenever voicing state changes.
 pt = audiolabel.PointTier()
 was_voiced = False
 for lab in lm.tier('is_voiced'):
@@ -127,7 +128,7 @@ for lab in lm.tier('is_voiced'):
             pt.add(audiolabel.Label(t1=lab.t1(), text='vl'))
         was_voiced = False
 
-
+# Output to STDOUT.
 outm = audiolabel.LabelManager()
 outm.add(pt)
 print outm._asString('praat_long')
