@@ -120,11 +120,11 @@ was_voiced = False
 for lab in lm.tier('is_voiced'):
     if lab.text == '1':
         if not was_voiced:
-            pt.add(audiolabel.Label(lab.t1(), text='vd'))
+            pt.add(audiolabel.Label(t1=lab.t1(), text='vd'))
         was_voiced = True
     else:
         if was_voiced:
-            pt.add(audiolabel.Label(lab.t1(), text='vl'))
+            pt.add(audiolabel.Label(t1=lab.t1(), text='vl'))
         was_voiced = False
 
 
