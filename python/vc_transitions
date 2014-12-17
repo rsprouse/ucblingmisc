@@ -1,0 +1,133 @@
+#!/usr/bin/env python
+"""
+{scriptname} [get_f0_args] wavfile
+
+Process input wavfile with esps utilities to find voicing transition points.
+Output a Praat textgrid to STDOUT with transitions to voiced state labelled
+'vd' and transitions to voiceless state labelled 'vl'.
+
+Additional arguments are passed directly to the esps get_f0 utility.
+
+IMPORTANT NOTE: This script cannot be used as-is. You must provide appropriate
+values for t1_start and t1_step. The default values are possibly correct for the
+default behavior of get_f0. There is still some thinking to do on this point.
+If you pass non-default parameters to get_f0 you should make sure to adjust
+t1_start and t1_step, if necessary.
+
+In a future version of this script you will be able to pass appropriate
+t1_start and t1_step values without having to edit the script, or we will
+calculate the right values based on the get_f0 parameters.
+"""
+
+# TODO: allow t1_start and t1_step to be passed as command line arguments.
+# These will need to be separated from arguments passed to get_f0.
+# Or perhaps we can automatically calculate these values based on get_f0
+# parameter values.
+
+# These are t1 values automatically assigned to the output rows of get_f0.
+# The first row gets the value of t1_start, and subsequent rows add t1_step
+# to the t1 value of the preceding row.
+t1_start = 0.000
+t1_step = 0.01
+
+# Authors: Ronald L. Sprouse (ronald@berkeley.edu)
+# 
+# Copyright (c) 2014, The Regents of the University of California
+# All rights reserved.
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# 
+# * Redistributions of source code must retain the above copyright notice, this
+#   list of conditions and the following disclaimer.
+# 
+# * Redistributions in binary form must reproduce the above copyright notice,
+#   this list of conditions and the following disclaimer in the documentation
+#   and/or other materials provided with the distribution.
+# 
+# * Neither the name of the University of California nor the names of its
+#   contributors may be used to endorse or promote products derived from
+#   this software without specific prior written permission.
+# 
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+import sys
+import subprocess
+import audiolabel
+
+# Input wavfile is specified last. All other input arguments are passed
+# to get_f0.
+wavfile = sys.argv[-1]
+if wavfile == '--help' or len(sys.argv) == 1:
+    scriptname = sys.argv[0].split("/")[-1]
+    print __doc__.format(scriptname=scriptname)
+    if len(sys.argv) == 1:
+        exit(1)
+    else:
+        exit(0)
+gf0_args = sys.argv[1:-1]    # all args except first and last
+gf0_args.insert(0, "get_f0")
+gf0_args.append('-')         # read from STDIN
+gf0_args.append('-')         # output to STDOUT
+
+# Remove wavfile's DC offset, which can adversely affect RMS and pitch
+# calculations if large.
+rdc_proc = subprocess.Popen(
+    ["rem_dc", wavfile, "-"],
+    stdout=subprocess.PIPE)
+
+# Run get_f0 for voicing states.
+gf0_proc = subprocess.Popen(
+    gf0_args,
+    stdin=rdc_proc.stdout,
+    stdout=subprocess.PIPE)
+
+# Convert binary output to a tabular text format.
+ppl_proc = subprocess.Popen(
+    ["pplain", "-"],
+    stdin=gf0_proc.stdout,
+    stdout=subprocess.PIPE)
+
+# Close the first two processes' output so that the last process doesn't block
+# while waiting for more input.
+rdc_proc.stdout.close()
+gf0_proc.stdout.close()
+
+# Read the esps output columns as separate label file tiers. Automatically add
+# a time component to the output rows.
+lm = audiolabel.LabelManager(
+    fromFile=ppl_proc.stdout,   # read directly from pplain output
+    fromType='table',
+    sep=" ",
+    fieldsInHead=False,
+    fields="f0,is_voiced,rms,acpeak",
+    t1Col=None,                 # esps output doesn't have a t1 column
+    t1_start=t1_start,          # autocreate t1 starting with this value and
+    t1_step=t1_step)             # increase by this step
+
+pt = audiolabel.PointTier()
+was_voiced = False
+for lab in lm.tier('is_voiced'):
+    if lab.text == '1':
+        if not was_voiced:
+            pt.add(audiolabel.Label(lab.t1(), text='vd'))
+        was_voiced = True
+    else:
+        if was_voiced:
+            pt.add(audiolabel.Label(lab.t1(), text='vl'))
+        was_voiced = False
+
+
+outm = audiolabel.LabelManager()
+outm.add(pt)
+print outm._asString('praat_long')
