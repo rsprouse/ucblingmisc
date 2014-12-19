@@ -1,0 +1,15 @@
+#!/bin/sh -e
+
+# Update a package from the bpm.
+
+
+case "$1" in
+
+mcr)
+    echo "mcr"
+    ;;
+*)
+    echo "Usage: bpm_update package"
+    exit 1
+    ;;
+
