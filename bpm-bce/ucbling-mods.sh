@@ -61,7 +61,7 @@ add_bpm_repositories(){
 # Package installs will fail if we are not up to date.
 $APT_GET update
 
-install_standard_pkgs(){
+install_standard_packages(){
     # These are packages that install from repositories already enabled in BCE.
 define STDPKGS <<'EOF'
 imagemagick
@@ -103,7 +103,7 @@ EOF
 }
 
 
-install_neuro_pkgs(){
+install_neuro_packages(){
     # Packages from the neurodebian repository.
 define NEUROPKGS <<'EOF'
 opensesame
@@ -302,6 +302,16 @@ install_display_acq(){
     cd $ORIGDIR
 }
 
+install_standard_packages
+install_neuro_packages
+install_ffmpeg
+install_rsprouse
+install_esps
+install_ifcformant
+install_htk
+install_edgetrak
+install_mcr
+install_display_acq
 
 # Install voicesauce. This will require getting the source and compiling for linux.
 #cd /usr/local/src
