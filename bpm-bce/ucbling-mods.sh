@@ -41,7 +41,7 @@ bpm_update_update() {
     echo "Updating bpm_update"
 
     SELF=$(basename $0)
-    UPDATE_BASE=https://github.com/rsprouse/ucblingmisc/blob/master/bpm-bce
+    UPDATE_BASE=https://raw.githubusercontent.com/rsprouse/ucblingmisc/master/bpm-bce
 
     # Download new version
     if ! wget --quiet --output-document="$0.tmp" $UPDATE_BASE/$SELF ; then
