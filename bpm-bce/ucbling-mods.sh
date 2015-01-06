@@ -36,6 +36,42 @@ apt_get_update(){
     $APT_GET update
 }
 
+# Adapted from http://stackoverflow.com/questions/8595751/is-this-a-valid-self-update-approach-for-a-bash-script
+bpm_update_update() {
+    echo "Updating bpm_update"
+
+    SELF=$(basename $0)
+    UPDATE_BASE=https://github.com/rsprouse/ucblingmisc/blob/master/bpm-bce
+
+    # Download new version
+    if ! wget --quiet --output-document="$0.tmp" $UPDATE_BASE/$SELF ; then
+        echo "Failed: Error while trying to wget new version!"
+        echo "File requested: $UPDATE_BASE/$SELF"
+        exit 1
+    fi
+
+    # Copy over modes from old version
+    OCTAL_MODE=$(stat -c '%a' $SELF)
+    if ! chmod $OCTAL_MODE "$0.tmp" ; then
+        echo "Failed: Error while trying to set mode on $0.tmp."
+        exit 1
+    fi
+
+    # Create and spawn update script
+    cat > bpm_update_update.sh << EOF
+#!/bin/bash
+# Overwrite old file with new
+if mv "$0.tmp" "$0"; then
+  echo 'Done. Update of "$SELF" complete.'
+  rm \$0
+else
+  echo 'Failed to update "$SELF"!'
+fi
+EOF
+
+    echo -n "Inserting update process..."
+    exec /bin/bash updateScript.sh
+}
 # Clone and set up python package from github.
 # First argument is base github url.
 # Second argument is specific repo (package) on github.
@@ -310,6 +346,7 @@ apt-get)
     apt_get_update
     ;;
 
+# 
 bpm-public)
     add_bpm_repositories
     apt_get_update
@@ -328,11 +365,17 @@ bpm-ucbling)
     install_mcr
     ;;
 
+bpm-update)
+    bpm_update_update
+    ;;
+
 neuro)
+    apt_get_update
     install_neuro_packages
     ;;
 
 ffmpeg)
+    apt_get_update
     install_ffmpeg
     ;;
 
@@ -369,9 +412,11 @@ phylogenetics)
     ;;
 
 fieldworks)
+    apt_get_update
     install_fieldworks
     ;;
 
+# Miscellaneous commands that don't do any installs.
 help)
     # TODO: better help message
     echo "Usage: bpm_update package"
