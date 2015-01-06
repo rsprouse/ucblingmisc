@@ -1,4 +1,4 @@
-#!/usr/bin/env bash -e
+#!/usr/bin/env bash
 
 # Install script for BPM, based off BCE.
 
@@ -385,6 +385,8 @@ list)
 *)
     echo "Usage: bpm_update package"
     ;;
+
+esac
 
 # Install voicesauce. This will require getting the source and compiling for linux.
 #cd /usr/local/src
