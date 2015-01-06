@@ -1,15 +1,470 @@
-#!/bin/sh -e
+#!/usr/bin/env bash
 
-# Update a package from the bpm.
+# Install script for BPM, based off BCE.
 
+# Also ran this on host so that symlinks can be created in shared folder:
+# VBoxManage setextradata BCE-0.1.3dev VBoxInternal2/SharedFoldersEnableSymlinksCreate/bpm-bce-mods 1
+# from template:
+# VBoxManage setextradata <VM_NAME> VBoxInternal2/SharedFoldersEnableSymlinksCreate/<SHARE_NAME> 1
+
+# Record changes made.
+#etckeeper init
+
+APT_GET="apt-get -q -y"
+ORIGDIR=`pwd`
+
+# Make heredoc variable assignment pretty.
+define(){ read -r -d '' ${1} || true; }
+
+# Install/remove .deb packages with apt-get.
+# First argument is install|remove
+# Second argument is a newline-delimited list of packages (# comment lines allowed).
+# Third argument is message to echo to console.
+apt_get_packages(){
+    echo "${3}"
+    # The grep bit allows us to have comments in the packages file
+    # The quotation marks around ${1} preserves newlines.
+    $APT_GET ${1} $(grep '^[^#]' <(echo "${2}")) && \
+    $APT_GET clean && \ # help avoid running out of disk space
+    echo DONE: ${3} || echo FAIL: ${3}
+}
+
+# Package installs will fail if we are not up to date.
+apt_get_update(){
+    $APT_GET update
+}
+
+# Adapted from http://stackoverflow.com/questions/8595751/is-this-a-valid-self-update-approach-for-a-bash-script
+update_bpm-update() {
+    echo "Updating bpm_update"
+
+    SELF=$(basename $0)
+    UPDATE_BASE=https://raw.githubusercontent.com/rsprouse/ucblingmisc/master/bpm-bce
+
+    # Download new version
+    if ! wget --quiet --output-document="$0.tmp" $UPDATE_BASE/$SELF ; then
+        echo "Failed: Error while trying to wget new version!"
+        echo "File requested: $UPDATE_BASE/$SELF"
+        exit 1
+    fi
+
+    # Copy over modes from old version
+    OCTAL_MODE=$(stat -c '%a' $SELF)
+    if ! chmod $OCTAL_MODE "$0.tmp" ; then
+        echo "Failed: Error while trying to set mode on $0.tmp."
+        exit 1
+    fi
+
+    # Create and spawn update script
+    cat > overwrite_bpm-update.sh << EOF
+#!/bin/bash
+# Overwrite old file with new
+if mv "$0.tmp" "$0"; then
+  echo 'Done. Update of "$SELF" complete.'
+  rm \$0
+else
+  echo 'Failed to update "$SELF"!'
+fi
+EOF
+
+    echo -n "Inserting update process..."
+    exec /bin/bash overwrite_bpm-update.sh
+}
+# Clone and set up python package from github.
+# First argument is base github url.
+# Second argument is specific repo (package) on github.
+python_clone_and_setup(){
+    cd /usr/local/src
+    git clone ${1}/${2}
+    cd ${2}
+    python setup.py install
+    cd $ORIGDIR
+}
+
+add_bpm_repositories(){
+    # Add neurodebian and sil.org repositories.
+    msg="BPM-BCE: Adding Linguistics repositories..."
+    echo "$msg"
+    # neurodebian
+    wget -O- http://neuro.debian.net/lists/trusty.us-ca.full | \
+    tee /etc/apt/sources.list.d/neurodebian.sources.list && \
+    apt-key adv --recv-keys --keyserver hkp://pgp.mit.edu:80 2649A5A9 && \
+    # sil.org
+    echo "deb http://packages.sil.org/ubuntu trusty main" > /etc/apt/sources.list.d/sil.sources.list && \
+    wget http://packages.sil.org/sil.gpg -O- | apt-key add - && \
+    # ppa for ffmpeg
+    add-apt-repository ppa:mc3man/trusty-media && \
+    echo DONE: $msg || echo FAIL: $msg
+}
+
+install_standard_packages(){
+    # These are packages that install from repositories already enabled in BCE.
+define STDPKGS <<'EOF'
+imagemagick
+praat
+python-nltk
+sox
+wavesurfer
+
+# We need to install osspd-alsa so that praat is not removed automatically when
+# pulseaudio is removed.
+osspd-alsa
+
+# The following packages are needed in order to build espsfree-* on the vm.
+# They will no longer be necessary and can be removed when espsfree-*
+# can be downloaded as a binary package.
+#build-essential  # already in BCE
+byacc
+#debhelper  # already in BCE
+devscripts
+flex
+libatlas-dev
+
+# This one is needed for ifcformant
+# Will be better to precompile ifcformant and just download it.
+subversion
+
+# Needed to compile esps.
+libc6-dev-i386
+
+# Needed to compile htk (results in package authentication warnings).
+libx11-dev:i386
+EOF
+    apt_get_packages install "$STDPKGS" "BPM-BCE: Installing Linguistics packages from standard repositories..."
+    # praat playback fails when pulseaudio is installed and vm is running on an os x host
+    apt_get_packages "remove --purge --assume-yes" pulseaudio "BPM-BCE: Removing pulseaudio..."
+}
+
+
+install_neuro_packages(){
+    # Packages from the neurodebian repository.
+define NEUROPKGS <<'EOF'
+opensesame
+EOF
+    apt_get_packages install "$NEUROPKGS" "BPM-BCE: Installing Linguistics packages from neurodebian repository..."
+}
+
+install_fieldworks(){
+    # Packages from the sil.org repository.
+    # TODO: fieldworks requires user to accept a license agreement
+define SILPKGS <<'EOF'
+fieldworks-applications
+EOF
+    apt_get_packages install "$SILPKGS" "BPM-BCE: Installing Linguistics packages from sil.org repository..."
+}
+
+install_ffmpeg(){
+define FFMPEGPKGS <<'EOF'
+ffmpeg
+EOF
+    apt_get_packages install "$FFMPEGPKGS" "BPM-BCE: Installing Linguistics packages from ffmpeg repository..."
+}
+
+install_phylogenetics(){
+    # These are packages Lev is interested in.
+define PHYLOPKGS <<'EOF'
+mrbayes
+beast-mcmc
+EOF
+    apt_get_packages install "$PHYLOPKGS" "BPM-BCE: Installing Linguistics packages for phylogenetics..."
+    msg="Installing Mesquite"
+    echo $msg
+    FNAME=Mesquite301_Linux.tgz
+    cd /opt && \
+    wget --quiet --output-document="$FNAME" https://github.com/MesquiteProject/MesquiteCore/releases/download/3.01/$FNAME && \
+    tar xf Mesquite301_Linux.tgz && \
+    chmod +x /opt/Mesquite_Folder/mesquite.sh && \
+    chown -R oski.oski /opt/Mesquite_Folder/ && \
+    rm Mesquite301_Linux.tgz && \
+    echo DONE: $msg || echo FAIL: $msg
+    cd $ORIGDIR
+}
+
+install_lingpy(){
+    # Python packages to pull and set up from github.
+    GITBASE=https://github.com/rsprouse
+    python_clone_and_setup $GITBASE klsyn
+    python_clone_and_setup $GITBASE audiolabel
+    python_clone_and_setup $GITBASE paramdraw
+    python_clone_and_setup $GITBASE maedasyn
+
+    # Install from ucblingmisc.
+    msg="Install miscellaneous Linguistics python utilities."
+    echo $msg
+    FNAME1=SoundLabel.pm
+    FNAME2=concat_pyalign_textgrids
+    FNAME3=convertlabel
+    FNAME4=make_text_grids
+    FNAME5=fricative_analysis.py
+    FNAME6=vc_transitions
+    mkdir /usr/local/lib/site_perl && \
+    cd /usr/local/lib/site_perl && \
+    wget --quiet --output-document="$FNAME1" https://raw.githubusercontent.com/rsprouse/ucblingmisc/master/perl/$FNAME1 && \
+    cd /usr/local/bin && \
+    wget --quiet --output-document="$FNAME2" https://raw.githubusercontent.com/rsprouse/ucblingmisc/master/perl/$FNAME2 && \
+    chmod +x $FNAME2 && \
+    wget --quiet --output-document="$FNAME3" https://raw.githubusercontent.com/rsprouse/ucblingmisc/master/perl/$FNAME3 && \
+    chmod +x $FNAME3 && \
+    wget --quiet --output-document="$FNAME4" https://raw.githubusercontent.com/rsprouse/ucblingmisc/master/perl/$FNAME4 && \
+    chmod +x $FNAME4 && \
+    wget --quiet --output-document="$FNAME5" https://raw.githubusercontent.com/rsprouse/ucblingmisc/master/python/$FNAME5 && \
+    chmod +x $FNAME5 && \
+    wget --quiet --output-document="$FNAME6" https://raw.githubusercontent.com/rsprouse/ucblingmisc/master/python/$FNAME6 && \
+    chmod +x $FNAME6 && \
+    echo DONE: $msg || echo FAIL: $msg
+
+    # Install pyalign.
+    msg="Install pyalign."
+    echo $msg
+    FNAME1=p2fa_1.003.tgz
+    FNAME2=pyalign
+    cd /opt && \
+    wget --quiet --output-document="$FNAME1" http://www.ling.upenn.edu/phonetics/p2fa/$FNAME1 && \
+    tar xzvf p2fa_1.003.tgz && \
+    cd /usr/local/bin && \
+    wget --quiet --output-document="$FNAME2" http://www.ling.upenn.edu/phonetics/p2fa/$FNAME2 && \
+    chmod +x /usr/local/bin/pyalign && \
+    echo DONE: $msg || echo FAIL: $msg
+    cd $ORIGDIR
+}
+
+install_esps(){
+    # esps install
+    cd /usr/local/src
+    git clone https://github.com/rsprouse/espsfree
+    cd espsfree/espsfree-dev
+    debuild --no-tgz-check -us -uc
+    cd ..
+    # Use * in the .deb name so we don't have to edit this script when the version changes.
+    dpkg -i espsfree-dev*.deb
+    cd espsfree-lib
+    debuild --no-tgz-check -us -uc
+    cd ..
+    dpkg -i espsfree-lib*.deb
+    cd espsfree-util
+    debuild --no-tgz-check -us -uc
+    cd ..
+    dpkg -i espsfree-util*.deb
+    cd espsfree-signal
+    debuild --no-tgz-check -us -uc
+    cd ..
+    dpkg -i espsfree-signal*.deb
+    rm *.build
+    rm *.changes
+    rm *.deb
+    rm *.dsc
+    rm *.tar.gz
+    cd $ORIGDIR
+}
+
+
+install_ifcformant(){
+    # Install ifcformant.
+    msg="Install ifcformant."
+    echo $msg
+    FNAME=ifcformant-bpm-bce.tar
+    cd /usr/local/src && \
+    wget --quiet --output-document="$FNAME" https://github.com/rsprouse/ucblingmisc/raw/master/ifcformant-bpm/$FNAME && \
+    tar xf $FNAME && \
+    cd ifcformant-bpm-bce && \
+    ./install-bpm.sh && \
+    echo DONE: $msg || echo FAIL: $msg
+    cd $ORIGDIR
+}
+
+install_htk(){
+    # Install HTK.
+    msg="Install HTK 3.4.1 and p2fa (pyalign)."
+define htkprompt <<'EOF'
+The HTK toolkit requires a username and password to download. These can be obtained at no cost
+by registering at http://htk.eng.cam.ac.uk/register.shtml.
+
+If you choose to skip registration HTK will not be installed. The Penn Force Aligner p2fa (pyalign)
+requires HTK and will not work without it.
+
+Provide a username to download HTK 3.4.1 or press <Enter> to skip HTK installation.
+EOF
+    echo $msg
+    echo "$htkprompt"
+    read username
+    if [ $username != '' ]; then
+        echo "Provide your HTK password:"
+        read password
+        if [ $password != '' ]; then
+            FNAME=HTK-3.4.1.tar.gz
+            cd /usr/local/src && \
+            wget --user $username --password $password --quiet --output-document="$FNAME" http://htk.eng.cam.ac.uk/ftp/software/$FNAME && \
+            tar xf $FNAME && \
+            cd htk && \
+            # Patch up HRec.c. See https://groups.google.com/forum/#!topic/fave-users/wDScrDkF44Q
+            # and https://github.com/JoFrhwld/FAVE/wiki/HTK-on-OS-X#fixing-htk-source for details.
+            perl -pi.orig -e 's/if \(dur<=0 && labid != splabid\) HError\\(8522,"LatFromPaths: Align have dur<=0 ")/if (dur<=0 && labpr != splabid) HError(8522,"LatFromPaths: Align have dur<=0 ")/' HTKLib/HRec.c && \
+            ./configure && \
+            make all && \
+            make install && \
+            echo DONE: $msg || echo FAIL: $msg
+            cd $ORIGDIR
+        fi
+    fi
+}
+
+# wine depends on ttt-mscorefont-installer and requires user to accept a license agreement
+install_wine(){
+    # Needed for EdgeTrak
+    apt_get_packages install wine "BPM-BCE: Installing wine from standard repositories..."
+}
+
+install_edgetrak(){
+    # Install EdgeTrak.
+    # EdgeTrak will run with:
+    #   wine /opt/EdgeTrak/EdgeTrak.exe
+    # TODO: edgetrak fails to run with 'unexpected main window position' error
+    msg="Install EdgeTrak."
+    echo $msg
+    FNAME=EdgeTrak.zip
+    cd /opt
+    wget --quiet --output-document="$FNAME" http://speech.umaryland.edu/programs/$FNAME && \
+    unzip $FNAME && \
+    rm Edgetrak.zip && \
+    echo DONE: $msg || echo FAIL: $msg
+    cd $ORIGDIR
+}
+
+install_mcr(){
+    # Install Matlab MCR.
+    # TODO: mcr also involves agreeing to license
+    msg="Installing Matlab runtime."
+    echo $msg
+    FNAME=MCR_R2014b_glnxa64_installer.zip
+    cd /usr/local/src && \
+    mkdir matlab_installer && \
+    cd matlab_installer && \
+    wget --quiet --output-document="$FNAME" http://www.mathworks.com/supportfiles/downloads/R2014b/deployment_files/R2014b/installers/glnxa64/$FNAME && \
+    unzip $FNAME && \
+    #./install -mode silent -agreeToLicense yes -destinationFolder /opt/matlab/2014b && \
+    ./install -mode silent -destinationFolder /opt/matlab/2014b && \
+    rm $FNAME && \
+    echo DONE: $msg || echo FAIL: $msg
+    cd $ORIGDIR
+}
+
+install_display_acq(){
+    # Install display_acq.
+    # To run with installed mcr: run_display_acq.sh /opt/matlab/2014b/v84/ acqfile.mat
+    # TODO: fix initial display size and location
+    msg="Installing display_acq."
+    echo $msg
+    FNAME=display_acq_2014b.tar
+    cd /usr/local/bin && \
+    wget --quiet --output-document="$FNAME" https://github.com/rsprouse/ucblingmisc/raw/master/display_acq-bpm/$FNAME && \
+    tar xf $FNAME && \
+    echo DONE: $msg || echo FAIL: $msg
+    cd $ORIGDIR
+}
 
 case "$1" in
 
-mcr)
-    echo "mcr"
-    ;;
-*)
-    echo "Usage: bpm_update package"
-    exit 1
+# Base package installation for public release. 
+bpm-public)
+    add_bpm_repositories
+    apt_get_update
+    install_standard_packages
+    install_neuro_packages
+    install_ffmpeg
+    install_lingpy
+    install_esps
+    install_ifcformant
+    install_edgetrak
+    install_display_acq
     ;;
 
+# Package installs for internal vm release only (license required).
+bpm-ucbling)
+    install_htk
+    install_wine
+    install_mcr
+    ;;
+
+bpm-update)
+    update_bpm-update
+    ;;
+
+neuro)
+    apt_get_update
+    install_neuro_packages
+    ;;
+
+ffmpeg)
+    apt_get_update
+    install_ffmpeg
+    ;;
+
+lingpy)
+    install_lingpy
+    ;;
+
+esps)
+    install_esps
+    ;;
+
+ifcformant)
+    install_ifcformant
+    ;;
+
+htk)
+    install_htk
+    ;;
+
+wine)
+    install_wine
+    ;;
+
+edgetrak)
+    install_edgetrak
+    ;;
+
+mcr)
+    install_mcr
+    ;;
+
+display_acq)
+    install_display_acq
+    ;;
+
+phylogenetics)
+    install_phylogenetics
+    ;;
+
+fieldworks)
+    apt_get_update
+    install_fieldworks
+    ;;
+
+# Miscellaneous commands that don't do any installs.
+apt-get)
+    apt_get_update
+    ;;
+
+help)
+    # TODO: better help message
+    echo "Usage: bpm_update package"
+    ;;
+
+list)
+    # TODO: echo list packages that can be installed/updated
+    echo "Usage: bpm_update package"
+    ;;
+
+*)
+    echo "Usage: bpm_update package"
+    ;;
+
+esac
+
+# Install voicesauce. This will require getting the source and compiling for linux.
+#cd /usr/local/src
+#wget http://www.phonetics.ucla.edu/voicesauce/current/VoiceSauce_bin.zip
+#cd $ORIGDIR
+
+
+# TODO: voicesauce, flowanalyzer
