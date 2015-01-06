@@ -55,7 +55,7 @@ update_bpm-update() {
     UPDATE_BASE=https://raw.githubusercontent.com/rsprouse/ucblingmisc/master/bpm-bce
 
     # Download new version
-    if ! wget --quiet --output-document="$0.tmp" $UPDATE_BASE/$SELF ; then
+    if ! wget --quiet --output-document=/usr/local/bin/$0.tmp $UPDATE_BASE/$SELF ; then
         echo "Failed: Error while trying to wget new version!"
         echo "File requested: $UPDATE_BASE/$SELF"
         exit 1
@@ -71,6 +71,7 @@ update_bpm-update() {
     # Create and spawn update script
     cat > overwrite_bpm-update.sh << EOF
 #!/bin/bash
+cd /usr/local/bin
 # Overwrite old file with new
 if mv "$0.tmp" "$0"; then
   echo 'Done. Update of "$SELF" complete.'
