@@ -70,7 +70,7 @@ fi
 EOF
 
     echo -n "Inserting update process..."
-    exec /bin/bash updateScript.sh
+    exec /bin/bash bpm_update_update.sh
 }
 # Clone and set up python package from github.
 # First argument is base github url.
