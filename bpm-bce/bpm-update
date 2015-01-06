@@ -2,13 +2,25 @@
 
 # Install script for BPM, based off BCE.
 
+# To provision a new BPM VM, get the latest BCE. Boot it and copy this script to
+# /usr/local/bin, then do:
+#
+#    bpm-update bpm-public
+#
+# This creates a VM that can be exported and shared without restriction. Additional
+# license-restricted packages can be installed for internal sharing with:
+#
+#    bpm-update bpm-ucbling
+#
+# Individual packages can be installed or updated with:
+#
+#    bpm-update <package>
+#
+
 # Also ran this on host so that symlinks can be created in shared folder:
 # VBoxManage setextradata BCE-0.1.3dev VBoxInternal2/SharedFoldersEnableSymlinksCreate/bpm-bce-mods 1
 # from template:
 # VBoxManage setextradata <VM_NAME> VBoxInternal2/SharedFoldersEnableSymlinksCreate/<SHARE_NAME> 1
-
-# Record changes made.
-#etckeeper init
 
 APT_GET="apt-get -q -y"
 ORIGDIR=`pwd`
@@ -34,6 +46,7 @@ apt_get_update(){
     $APT_GET update
 }
 
+# Self-update the bpm-update script.
 # Adapted from http://stackoverflow.com/questions/8595751/is-this-a-valid-self-update-approach-for-a-bash-script
 update_bpm-update() {
     echo "Updating bpm_update"
@@ -97,7 +110,7 @@ add_bpm_repositories(){
     echo DONE: $msg || echo FAIL: $msg
 }
 
-install_standard_packages(){
+install_bce_packages(){
     # These are packages that install from repositories already enabled in BCE.
 define STDPKGS <<'EOF'
 imagemagick
@@ -368,7 +381,7 @@ case "$1" in
 bpm-public)
     add_bpm_repositories
     apt_get_update
-    install_standard_packages
+    install_bce_packages
     install_neuro_packages
     install_ffmpeg
     install_lingpy
@@ -378,17 +391,19 @@ bpm-public)
     install_display_acq
     ;;
 
-# Package installs for internal vm release only (license required).
+# Additional package installs for internal vm release only (license required).
 bpm-ucbling)
     install_htk
     install_wine
     install_mcr
     ;;
 
+# Self-update bpm-update.
 bpm-update)
     update_bpm-update
     ;;
 
+# Individual package install/update.
 neuro)
     apt_get_update
     install_neuro_packages
