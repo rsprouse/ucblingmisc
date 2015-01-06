@@ -106,7 +106,8 @@ add_bpm_repositories(){
     echo "deb http://packages.sil.org/ubuntu trusty main" > /etc/apt/sources.list.d/sil.sources.list && \
     wget http://packages.sil.org/sil.gpg -O- | apt-key add - && \
     # ppa for ffmpeg
-    add-apt-repository ppa:mc3man/trusty-media && \
+    add-apt-repository ppa:kirillshkrogalev/ffmpeg-next && \
+    #add-apt-repository ppa:mc3man/trusty-media && \   # old, for Ubuntu 14.04
     echo DONE: $msg || echo FAIL: $msg
 }
 
@@ -338,7 +339,7 @@ install_edgetrak(){
     cd /opt
     wget --quiet --output-document="$FNAME" http://speech.umaryland.edu/programs/$FNAME && \
     unzip $FNAME && \
-    rm Edgetrak.zip && \
+    rm $FNAME && \
     echo DONE: $msg || echo FAIL: $msg
     cd $ORIGDIR
 }
