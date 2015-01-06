@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env bash -e
 
 # Install script for BPM, based off BCE.
 
@@ -31,6 +31,11 @@ apt_get_packages(){
     echo DONE: ${3} || echo FAIL: ${3}
 }
 
+# Package installs will fail if we are not up to date.
+apt_get_update(){
+    $APT_GET update
+}
+
 # Clone and set up python package from github.
 # First argument is base github url.
 # Second argument is specific repo (package) on github.
@@ -57,9 +62,6 @@ add_bpm_repositories(){
     add-apt-repository ppa:mc3man/trusty-media && \
     echo DONE: $msg || echo FAIL: $msg
 }
-
-# Package installs will fail if we are not up to date.
-$APT_GET update
 
 install_standard_packages(){
     # These are packages that install from repositories already enabled in BCE.
@@ -146,7 +148,7 @@ EOF
     cd $ORIGDIR
 }
 
-install_rsprouse(){
+install_lingpy(){
     # Python packages to pull and set up from github.
     GITBASE=https://github.com/rsprouse
     python_clone_and_setup $GITBASE klsyn
@@ -302,16 +304,87 @@ install_display_acq(){
     cd $ORIGDIR
 }
 
-install_standard_packages
-install_neuro_packages
-install_ffmpeg
-install_rsprouse
-install_esps
-install_ifcformant
-install_htk
-install_edgetrak
-install_mcr
-install_display_acq
+case "$1" in
+
+apt-get)
+    apt_get_update
+    ;;
+
+bpm-public)
+    add_bpm_repositories
+    apt_get_update
+    install_standard_packages
+    install_neuro_packages
+    install_ffmpeg
+    install_lingpy
+    install_esps
+    install_ifcformant
+    install_edgetrak
+    install_display_acq
+    ;;
+
+bpm-ucbling)
+    install_htk
+    install_mcr
+    ;;
+
+neuro)
+    install_neuro_packages
+    ;;
+
+ffmpeg)
+    install_ffmpeg
+    ;;
+
+lingpy)
+    install_lingpy
+    ;;
+
+esps)
+    install_esps
+    ;;
+
+ifcformant)
+    install_ifcformant
+    ;;
+
+htk)
+    install_htk
+    ;;
+
+edgetrak)
+    install_edgetrak
+    ;;
+
+mcr)
+    install_mcr
+    ;;
+
+display_acq)
+    install_display_acq
+    ;;
+
+phylogenetics)
+    install_phylogenetics
+    ;;
+
+fieldworks)
+    install_fieldworks
+    ;;
+
+help)
+    # TODO: better help message
+    echo "Usage: bpm_update package"
+    ;;
+
+list)
+    # TODO: echo list packages that can be installed/updated
+    echo "Usage: bpm_update package"
+    ;;
+
+*)
+    echo "Usage: bpm_update package"
+    ;;
 
 # Install voicesauce. This will require getting the source and compiling for linux.
 #cd /usr/local/src
@@ -320,4 +393,3 @@ install_display_acq
 
 
 # TODO: voicesauce, flowanalyzer
-# TODO: remove pulseaudio? get audio working!
