@@ -126,6 +126,8 @@ python_clone_and_setup(){
     git clone ${1}/${2}
     cd ${2}
     python setup.py install
+    cd ..
+    rm -rf ${2}
     cd $ORIGDIR
 }
 
@@ -315,6 +317,7 @@ install_esps(){
     rm *.deb
     rm *.dsc
     rm *.tar.gz
+    rm -rf espsfree && \
     cd $ORIGDIR
 }
 
@@ -329,6 +332,9 @@ install_ifcformant(){
     tar xf $FNAME && \
     cd ifcformant-bpm-bce && \
     ./install-bpm.sh && \
+    cd .. && \
+    rm $FNAME && \
+    rm -rf ifcformant-bpm-bce && \
     echo DONE: $msg || echo FAIL: $msg
     cd $ORIGDIR
 }
@@ -363,6 +369,9 @@ EOF
             ./configure && \
             make all && \
             make install && \
+            cd .. && \
+            rm $FNAME && \
+            rm -rf htk && \
             echo DONE: $msg || echo FAIL: $msg
             cd $ORIGDIR
         fi
@@ -421,6 +430,7 @@ install_display_acq(){
     cd /usr/local/bin && \
     wget --quiet --output-document="$FNAME" https://github.com/rsprouse/ucblingmisc/raw/master/display_acq-bpm/$FNAME && \
     tar xf $FNAME && \
+    rm $FNAME && \
     echo DONE: $msg || echo FAIL: $msg
     cd $ORIGDIR
 }
@@ -441,6 +451,7 @@ bpm-public)
     install_ifcformant
     install_edgetrak
     install_display_acq
+    apt-get -q -y autoremove
     ;;
 
 # Additional package installs for internal vm release only (license required).
