@@ -72,18 +72,19 @@ update_bpm-update() {
     # Create and spawn update script
     cat > overwrite_bpm-update.sh << EOF
 #!/bin/bash
-cd /usr/local/bin
+
 # Overwrite old file with new
 if mv "$0.tmp" "$MYDIR"/"$SELF"; then
   echo 'Done. Update of "$SELF" complete.'
   rm \$0
+  cd "$1"
 else
   echo 'Failed to update "$SELF"!'
 fi
 EOF
 
     echo -n "Inserting update process..."
-    exec /bin/bash overwrite_bpm-update.sh
+    exec /bin/bash overwrite_bpm-update.sh "$ORIGDIR"
 }
 # Clone and set up python package from github.
 # First argument is base github url.
