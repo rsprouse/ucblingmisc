@@ -317,7 +317,7 @@ install_esps(){
     rm *.deb
     rm *.dsc
     rm *.tar.gz
-    rm -rf espsfree && \
+    rm -rf /usr/local/src/espsfree
     cd $ORIGDIR
 }
 
