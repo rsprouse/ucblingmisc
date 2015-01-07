@@ -5,12 +5,15 @@
 # To provision a new BPM VM, get the latest BCE. Boot it and copy this script to
 # /usr/local/bin, then do:
 #
-#    bpm-update bpm-public
+#    bpm-update-VERSION bpm-public
 #
 # This creates a VM that can be exported and shared without restriction. Additional
 # license-restricted packages can be installed for internal sharing with:
 #
 #    bpm-update bpm-ucbling
+#
+# Note that the bpm-public target symlinks bpm-update-VERSION to bpm-update, and the
+# shorter form can be used thereafter.
 #
 # Individual packages can be installed or updated with:
 #
@@ -379,9 +382,11 @@ install_edgetrak(){
     # TODO: edgetrak fails to run with 'unexpected main window position' error
     msg="Install EdgeTrak."
     echo $msg
-    FNAME=EdgeTrak.zip
+    #FNAME=EdgeTrak.zip
+    FNAME=Edgetrak.zip
     cd /opt
-    wget --quiet --output-document="$FNAME" http://speech.umaryland.edu/programs/$FNAME && \
+    #wget --quiet --output-document="$FNAME" http://speech.umaryland.edu/programs/$FNAME && \
+    wget --quiet --output-document="$FNAME" https://github.com/rsprouse/ucblingmisc/raw/master/edgetrak/$FNAME && \
     unzip $FNAME && \
     rm $FNAME && \
     echo DONE: $msg || echo FAIL: $msg
