@@ -58,8 +58,8 @@ apt_get_update(){
 install_version_txt() {
     echo "Installing version.txt to the desktop."
     echo "Installed version will be $VERSION. Press 'y' to confirm."
-    read confirm
-    if [ $confirm != 'y' ]; then
+    read -n 1 confirm
+    if [ "$confirm" != 'y' ]; then
         echo "Edit bpm-update to update VERSION. Exiting."
         exit 1
     fi
@@ -73,7 +73,7 @@ EOF
 symlink_bpm-update() {
     echo "Creating symlink to $ABS_BARE_SCRIPTNAME from $ABS_VERSIONED_SCRIPTNAME."
     ln -s $ABS_VERSIONED_SCRIPTNAME $ABS_BARE_SCRIPTNAME && \
-    echo "DONE: Created symlink." || echo "FAIL: Could not create symlink. Is $VERSIONED_SCRIPTNAME in $SCRIPTDIR?"; exit 1
+    echo "DONE: Created symlink." || { echo "FAIL: Could not create symlink. Is $VERSIONED_SCRIPTNAME in $SCRIPTDIR?"; exit 1; }
 }
 
 # Self-update the bpm-update script.
