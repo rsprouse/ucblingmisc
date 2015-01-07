@@ -23,6 +23,13 @@
 # VBoxManage setextradata <VM_NAME> VBoxInternal2/SharedFoldersEnableSymlinksCreate/<SHARE_NAME> 1
 
 VERSION=BCE-2015-spring-preview-BPM-1
+VERSION_SUFFIX=`echo $VERSION | cut -f 2,3 -d-`   # e.g. 2015-spring
+SCRIPTDIR=/usr/local/bin
+BARE_SCRIPTNAME=bpm-update
+VERSIONED_SCRIPTNAME="$BARE_SCRIPTNAME-$VERSION_SUFFIX"
+ABS_BARE_SCRIPTNAME="$SCRIPTDIR/$BARE_SCRIPTNAME"
+ABS_VERSIONED_SCRIPTNAME="$SCRIPTDIR/$VERSIONED_SCRIPTNAME"
+
 APT_GET="apt-get -q -y"
 ORIGDIR=`pwd`
 
@@ -62,26 +69,31 @@ EOF
     echo "Installed version.txt."
 }
 
+# Create a symlink from bpm-update-VERSION to bpm-update.
+symlink_bpm-update() {
+    echo "Creating symlink to $ABS_BARE_SCRIPTNAME from $ABS_VERSIONED_SCRIPTNAME."
+    ln -s $ABS_VERSIONED_SCRIPTNAME $ABS_BARE_SCRIPTNAME && \
+    echo "DONE: Created symlink." || echo "FAIL: Could not create symlink. Is $VERSIONED_SCRIPTNAME in $SCRIPTDIR?"; exit 1
+}
+
 # Self-update the bpm-update script.
 # Adapted from http://stackoverflow.com/questions/8595751/is-this-a-valid-self-update-approach-for-a-bash-script
 update_bpm-update() {
     echo "Updating bpm_update"
 
-    SELF=$(basename $0)
-    MYDIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
     UPDATE_BASE=https://raw.githubusercontent.com/rsprouse/ucblingmisc/master/bpm-bce
 
     # Download new version
-    if ! wget --quiet --output-document="$0".tmp $UPDATE_BASE/$SELF ; then
+    if ! wget --quiet --output-document="$0".tmp $UPDATE_BASE/$VERSIONED_SCRIPTNAME ; then
         echo "Failed: Error while trying to wget new version!"
-        echo "File requested: $UPDATE_BASE/$SELF"
+        echo "File requested: $UPDATE_BASE/$VERSIONED_SCRIPTNAME"
         exit 1
     fi
 
     # Copy over modes from old version
-    OCTAL_MODE=$(stat -c '%a' $0)
-    if ! chmod $OCTAL_MODE "$0.tmp" ; then
-        echo "Failed: Error while trying to set mode on $0.tmp."
+    OCTAL_MODE=$(stat -c '%a' $ABS_VERSIONED_SCRIPTNAME)
+    if ! chmod $OCTAL_MODE "$ABS_VERSIONED_SCRIPTNAME.tmp" ; then
+        echo "Failed: Error while trying to set mode on $ABS_VERSIONED_SCRIPTNAME.tmp."
         exit 1
     fi
 
@@ -90,13 +102,14 @@ update_bpm-update() {
 #!/bin/bash
 
 # Overwrite old file with new
-if mv "$0.tmp" "$MYDIR"/"$SELF"; then
-  echo 'Done. Update of "$SELF" complete.'
-  rm \$0
-  cd "$1"
+if mv "$ABS_VERSIONED_SCRIPTNAME.tmp" "$ABS_VERSIONED_SCRIPTNAME"; then
+  echo 'Done. Update of "$ABS_VERSIONED_SCRIPTNAME" complete.'
 else
-  echo 'Failed to update "$SELF"!'
+  echo 'Failed to update "$ABS_VERSIONED_SCRIPTNAME"!'
 fi
+# Remove overwrite_bpm-update.sh and return to specified directory.
+rm \$0
+cd "\$1"
 EOF
 
     echo -n "Inserting update process..."
@@ -411,6 +424,7 @@ case "$1" in
 
 # Base package installation for public release. 
 bpm-public)
+    symlink_bpm-update
     install_version_txt
     add_bpm_repositories
     apt_get_update
