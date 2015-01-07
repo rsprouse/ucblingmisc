@@ -22,6 +22,7 @@
 # from template:
 # VBoxManage setextradata <VM_NAME> VBoxInternal2/SharedFoldersEnableSymlinksCreate/<SHARE_NAME> 1
 
+VERSION=BCE-2015-spring-preview-BPM-1
 APT_GET="apt-get -q -y"
 ORIGDIR=`pwd`
 
@@ -44,6 +45,21 @@ apt_get_packages(){
 # Package installs will fail if we are not up to date.
 apt_get_update(){
     $APT_GET update
+}
+
+# Install the version.txt file on the desktop.
+install_version_txt() {
+    echo "Installing version.txt to the desktop."
+    echo "Installed version will be $VERSION. Press 'y' to confirm."
+    read confirm
+    if [ $confirm != 'y' ]; then
+        echo "Edit bpm-update to update VERSION. Exiting."
+        exit 1
+    fi
+    cat > /home/oski/Desktop/version.txt << EOF
+$VERSION
+EOF
+    echo "Installed version.txt."
 }
 
 # Self-update the bpm-update script.
@@ -159,6 +175,18 @@ define NEUROPKGS <<'EOF'
 opensesame
 EOF
     apt_get_packages install "$NEUROPKGS" "BPM-BCE: Installing Linguistics packages from neurodebian repository..."
+    msg="Installing media_player_vlc plugin."
+    echo $msg
+    FNAME=media_player_vlc.zip
+    PLUGDIR=/home/oski/.opensesame/plugins
+    mkdir -p $PLUGDIR && \
+    cd $PLUGDIR && \
+    wget --quiet --output-document="$FNAME" https://github.com/rsprouse/ucblingmisc/raw/master/opensesame/$FNAME && \
+    unzip $FNAME
+    chown -R oski.oski $PLUGDIR/media_player_vlc && \
+    rm $FNAME && \
+    echo DONE: $msg || echo FAIL: $msg
+    cd $ORIGDIR
 }
 
 install_fieldworks(){
@@ -189,10 +217,10 @@ EOF
     FNAME=Mesquite301_Linux.tgz
     cd /opt && \
     wget --quiet --output-document="$FNAME" https://github.com/MesquiteProject/MesquiteCore/releases/download/3.01/$FNAME && \
-    tar xf Mesquite301_Linux.tgz && \
+    tar xf $FNAME && \
     chmod +x /opt/Mesquite_Folder/mesquite.sh && \
     chown -R oski.oski /opt/Mesquite_Folder/ && \
-    rm Mesquite301_Linux.tgz && \
+    rm $FNAME && \
     echo DONE: $msg || echo FAIL: $msg
     cd $ORIGDIR
 }
@@ -291,7 +319,7 @@ install_ifcformant(){
 
 install_htk(){
     # Install HTK.
-    msg="Install HTK 3.4.1 and p2fa (pyalign)."
+    msg="Install HTK 3.4.1 for p2fa (pyalign)."
 define htkprompt <<'EOF'
 The HTK toolkit requires a username and password to download. These can be obtained at no cost
 by registering at http://htk.eng.cam.ac.uk/register.shtml.
@@ -383,6 +411,7 @@ case "$1" in
 
 # Base package installation for public release. 
 bpm-public)
+    install_version_txt
     add_bpm_repositories
     apt_get_update
     install_bce_packages
