@@ -414,7 +414,7 @@ install_mcr(){
     wget --quiet --output-document="$FNAME" http://www.mathworks.com/supportfiles/downloads/R2014b/deployment_files/R2014b/installers/glnxa64/$FNAME && \
     unzip $FNAME && \
     #./install -mode silent -agreeToLicense yes -destinationFolder /opt/matlab/2014b && \
-    ./install -mode silent -destinationFolder /opt/matlab/2014b && \
+    ./install -destinationFolder /opt/matlab/2014b && \
     rm $FNAME && \
     echo DONE: $msg || echo FAIL: $msg
     cd $ORIGDIR
