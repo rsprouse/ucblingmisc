@@ -200,7 +200,7 @@ EOF
     cd $PLUGDIR && \
     wget --quiet --output-document="$FNAME" https://github.com/rsprouse/ucblingmisc/raw/master/opensesame/$FNAME && \
     unzip $FNAME
-    chown -R oski.oski $PLUGDIR/media_player_vlc && \
+    chown -R oski.oski /home/oski/.opensesame && \
     rm $FNAME && \
     echo DONE: $msg || echo FAIL: $msg
     cd $ORIGDIR
@@ -258,7 +258,7 @@ install_lingpy(){
     FNAME4=make_text_grids
     FNAME5=fricative_analysis.py
     FNAME6=vc_transitions
-    mkdir /usr/local/lib/site_perl && \
+    mkdir -p /usr/local/lib/site_perl && \
     cd /usr/local/lib/site_perl && \
     wget --quiet --output-document="$FNAME1" https://raw.githubusercontent.com/rsprouse/ucblingmisc/master/perl/$FNAME1 && \
     cd /usr/local/bin && \
@@ -407,7 +407,7 @@ install_mcr(){
     echo $msg
     FNAME=MCR_R2014b_glnxa64_installer.zip
     cd /usr/local/src && \
-    mkdir matlab_installer && \
+    mkdir -p matlab_installer && \
     cd matlab_installer && \
     wget --quiet --output-document="$FNAME" http://www.mathworks.com/supportfiles/downloads/R2014b/deployment_files/R2014b/installers/glnxa64/$FNAME && \
     unzip $FNAME && \
