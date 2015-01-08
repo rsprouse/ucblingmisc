@@ -19,13 +19,16 @@
 #
 #    bpm-update <package>
 #
+# To list available packages:
+#
+#    bpm-update --help
 
 # Also ran this on host so that symlinks can be created in shared folder:
 # VBoxManage setextradata BCE-0.1.3dev VBoxInternal2/SharedFoldersEnableSymlinksCreate/bpm-bce-mods 1
 # from template:
 # VBoxManage setextradata <VM_NAME> VBoxInternal2/SharedFoldersEnableSymlinksCreate/<SHARE_NAME> 1
 
-VERSION=BCE-2015-spring-preview-BPM-1
+VERSION=BCE-2015-spring-preview-2-BPM-1
 VERSION_SUFFIX=`echo $VERSION | cut -f 2,3 -d-`   # e.g. 2015-spring
 SCRIPTDIR=/usr/local/bin
 BARE_SCRIPTNAME=bpm-update
@@ -76,7 +79,7 @@ EOF
 symlink_bpm-update() {
     echo "Creating symlink to $ABS_BARE_SCRIPTNAME from $ABS_VERSIONED_SCRIPTNAME."
     ln -s $ABS_VERSIONED_SCRIPTNAME $ABS_BARE_SCRIPTNAME && \
-    echo "DONE: Created symlink." || { echo "FAIL: Could not create symlink. Is $VERSIONED_SCRIPTNAME in $SCRIPTDIR?"; exit 1; }
+    echo "DONE: Created symlink." || { echo "FAIL: Could not create symlink. Is $VERSIONED_SCRIPTNAME in $SCRIPTDIR? Or are you trying to run "; exit 1; }
 }
 
 # Self-update the bpm-update script.
@@ -118,6 +121,7 @@ EOF
     echo -n "Inserting update process..."
     exec /bin/bash overwrite_bpm-update.sh "$ORIGDIR"
 }
+
 # Clone and set up python package from github.
 # First argument is base github url.
 # Second argument is specific repo (package) on github.
@@ -142,9 +146,9 @@ add_bpm_repositories(){
     # sil.org
     echo "deb http://packages.sil.org/ubuntu trusty main" > /etc/apt/sources.list.d/sil.sources.list && \
     wget http://packages.sil.org/sil.gpg -O- | apt-key add - && \
-    # ppa for ffmpeg
-    add-apt-repository ppa:kirillshkrogalev/ffmpeg-next && \
-    #add-apt-repository ppa:mc3man/trusty-media && \   # old, for Ubuntu 14.04
+    # ppa for ffmpeg--should no longer be necessary, starting with Ubuntu 15.04
+    add-apt-repository ppa:kirillshkrogalev/ffmpeg-next && \   # Ubuntu 14.10
+    #add-apt-repository ppa:mc3man/trusty-media && \   # Ubuntu 14.04
     echo DONE: $msg || echo FAIL: $msg
 }
 
@@ -153,7 +157,6 @@ install_bce_packages(){
 define STDPKGS <<'EOF'
 imagemagick
 praat
-python-nltk
 sox
 wavesurfer
 
@@ -170,10 +173,6 @@ byacc
 devscripts
 flex
 libatlas-dev
-
-# This one is needed for ifcformant
-# Will be better to precompile ifcformant and just download it.
-subversion
 
 # Needed to compile esps.
 libc6-dev-i386
@@ -224,7 +223,6 @@ EOF
 }
 
 install_phylogenetics(){
-    # These are packages Lev is interested in.
 define PHYLOPKGS <<'EOF'
 mrbayes
 beast-mcmc
@@ -523,13 +521,8 @@ apt-get)
     apt_get_update
     ;;
 
-help)
+--help)
     # TODO: better help message
-    echo "Usage: bpm_update package"
-    ;;
-
-list)
-    # TODO: echo list packages that can be installed/updated
     echo "Usage: bpm_update package"
     ;;
 
