@@ -365,6 +365,8 @@ EOF
             # and https://github.com/JoFrhwld/FAVE/wiki/HTK-on-OS-X#fixing-htk-source for details.
             perl -pi.orig -e 's/if \(dur<=0 && labid != splabid\) HError\\(8522,"LatFromPaths: Align have dur<=0 ")/if (dur<=0 && labpr != splabid) HError(8522,"LatFromPaths: Align have dur<=0 ")/' HTKLib/HRec.c && \
             ./configure && \
+            # Patch up a Makefile parse error (make expects indentation with a tab character).
+            perl -pi.orig -e 's/        if [ ! -d/\tif [ ! -d/' HLMTools/Makefile && \
             make all && \
             make install && \
             cd .. && \
