@@ -424,6 +424,7 @@ install_display_acq(){
     # Install display_acq.
     # To run with installed mcr: run_display_acq.sh /opt/matlab/2014b/v84/ acqfile.mat
     # TODO: fix initial display size and location
+    # TODO: set MCRROOT in run_display_acq.sh specific to expected mcr installation in BPM
     msg="Installing display_acq."
     echo $msg
     FNAME=display_acq_2014b.tar
@@ -526,6 +527,7 @@ apt-get)
 --help)
     # TODO: better help message
     echo "Usage: bpm_update package"
+    echo A list of packages should go here.
     ;;
 
 *)
