@@ -2,22 +2,25 @@
 
 # Install script for BPM, based off BCE.
 
-# To provision a new BPM VM, get the latest BCE. Boot it and copy this script to
-# /usr/local/bin, then do:
+# To provision a new BPM VM, get the latest BCE. Boot it, then open a terminal
+# and do: 
 #
-#    bpm-update-VERSION bpm-public
+#    cd /usr/local/bin
+#    sudo wget https://raw.githubusercontent.com/rsprouse/ucblingmisc/master/bpm-bce/bpm-update-2015-spring
+#    sudo chmod +x bpm-update-2015-spring
+#    sudo bpm-update-2015-spring bpm-public
 #
 # This creates a VM that can be exported and shared without restriction. Additional
 # license-restricted packages can be installed for internal sharing with:
 #
-#    bpm-update bpm-ucbling
+#    sudo bpm-update bpm-ucbling
 #
 # Note that the bpm-public target symlinks bpm-update-VERSION to bpm-update, and the
 # shorter form can be used thereafter.
 #
 # Individual packages can be installed or updated with:
 #
-#    bpm-update <package>
+#    sudo bpm-update <package>
 #
 # To list available packages:
 #
@@ -388,7 +391,7 @@ install_edgetrak(){
     # Install EdgeTrak.
     # EdgeTrak will run with:
     #   wine /opt/EdgeTrak/EdgeTrak.exe
-    # TODO: edgetrak fails to run with 'unexpected main window position' error
+    # Note: user must configure wine to enable 'Emulate a virtual desktop'.
     msg="Install EdgeTrak."
     echo $msg
     #FNAME=EdgeTrak.zip
