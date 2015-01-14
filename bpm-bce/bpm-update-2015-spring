@@ -381,6 +381,19 @@ EOF
     fi
 }
 
+# R packages for linguists.
+install_r_packages(){
+define r_cmd <<'EOF'
+install.packages(
+    c(
+      "gdata",
+      "languageR"
+    ),
+    repos = "http://cran.cnr.Berkeley.edu")
+EOF
+echo $r_cmd | sudo /usr/bin/Rscript --no-restore --no-save -
+}
+
 # wine depends on ttt-mscorefont-installer and requires user to accept a license agreement
 install_wine(){
     # Needed for EdgeTrak
@@ -495,6 +508,10 @@ ifcformant)
 
 htk)
     install_htk
+    ;;
+
+r-packages)
+    install_r_packages
     ;;
 
 wine)
