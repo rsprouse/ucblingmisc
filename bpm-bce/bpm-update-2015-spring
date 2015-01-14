@@ -452,6 +452,92 @@ install_display_acq(){
     cd $ORIGDIR
 }
 
+define usage <<'EOF'
+
+  bpm-update
+    Provisioning script for installing and updating Berkeley Phonetics Machine
+    (BPM) packages.
+
+  Usage:
+    bpm-update <target>     # install or update package <target>
+    bpm-update --help       # full usage info and list of targets
+
+EOF
+
+define targets <<'EOF'
+
+Targets not installed in the BPM public release:
+
+  fieldworks
+    SIL FieldWorks packages
+
+  htk
+    HTK toolkit, required for Penn Forced Aligner p2fa (pyalign)
+    (user must register at http://htk.eng.cam.ac.uk/register.shtml
+    in order to download the package)
+
+  mcr
+    Matlab Component Runtime (2014b), required for display_acq
+    (user must accept license agreement)
+
+  phylogenetics
+    MrBayes, BEAST, Mesquite
+
+  wine
+    Windows emulator, required for EdgeTrak
+    (user must accept license agreement)
+
+Targets that are installed in the BPM public release. Use these to reinstall
+or update:
+
+  bce-packages
+    Packages that are available in the BCE package repository but not already
+    installed in BCE (imagemagick, praat, sox, wavesurfer).
+
+  display_acq
+    Matlab tool for multichannel signal display, as produced in UC Berkeley
+    Phonology Lab.
+    (requires Matlab Component Runtime, which user can install with mcr target)
+
+  edgetrak
+    EdgeTrak tool for working with ultrasound images
+
+  esps
+    Entropic Signal Processing System (ESPS) command line utilities
+
+  ffmpeg
+    ffmpeg utility for working with video, audio, and image files
+
+  ifcformant
+    Inverse Filter Control formant tracker
+
+  lingpy
+    Various Python packages used in the UC Berkeley Phonology Lab: audiolabel,
+    klsyn, maedasyn
+
+  neuro
+    Packages from neurodebian repository: opensesame
+
+  r-packages
+    A useful set of R packages for linguists.
+  
+Special purpose targets:
+
+  bpm-update
+    Use this target to self-update bpm-update.
+
+  bpm-public
+    Use this target to provision BPM additions to a BCE release.
+
+  bpm-ucbling
+    Use this target after bpm-public to provision an internal BPM release.
+
+  apt-get
+    Use this target to update the apt database before installing a target
+    that includes a .deb file.
+
+EOF
+
 case "$1" in
 
 # Base package installation for public release. 
@@ -465,6 +551,7 @@ bpm-public)
     install_ffmpeg
     install_lingpy
     install_esps
+    install_r_packages
     install_ifcformant
     install_edgetrak
     install_display_acq
@@ -481,6 +568,10 @@ bpm-ucbling)
 # Self-update bpm-update.
 bpm-update)
     update_bpm-update
+    ;;
+
+bce-packages)
+    install_bce_packages
     ;;
 
 # Individual package install/update.
@@ -546,12 +637,17 @@ apt-get)
 
 --help)
     # TODO: better help message
-    echo "Usage: bpm_update package"
-    echo A list of packages should go here.
+    echo " "
+    echo "$usage"
+    echo " "
+    echo "$targets"
+    echo " "
     ;;
 
 *)
-    echo "Usage: bpm_update package"
+    echo " "
+    echo "$usage"
+    echo " "
     ;;
 
 esac
