@@ -421,11 +421,12 @@ install_mcr(){
     # Install Matlab MCR.
     msg="Installing Matlab runtime."
     echo $msg
+    echo "This is a large download and might take a while..."
     FNAME=MCR_R2014b_glnxa64_installer.zip
     cd /usr/local/src && \
     mkdir -p matlab_installer && \
     cd matlab_installer && \
-    wget --quiet --output-document="$FNAME" http://www.mathworks.com/supportfiles/downloads/R2014b/deployment_files/R2014b/installers/glnxa64/$FNAME && \
+    wget --output-document="$FNAME" http://www.mathworks.com/supportfiles/downloads/R2014b/deployment_files/R2014b/installers/glnxa64/$FNAME && \
     unzip $FNAME && \
     #./install -mode silent -agreeToLicense yes -destinationFolder /opt/matlab/2014b && \
     ./install -destinationFolder /opt/matlab/2014b && \
