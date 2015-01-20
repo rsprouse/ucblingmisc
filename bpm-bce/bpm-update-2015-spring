@@ -163,6 +163,11 @@ praat
 sox
 wavesurfer
 
+# wish8.5 is needed for wavesurfer but is not installed automatically. This is
+# probably a Depends bug in the wavesurfer package.
+tcl8.5
+tk8.5
+
 # We need to install osspd-alsa so that praat is not removed automatically when
 # pulseaudio is removed.
 osspd-alsa
