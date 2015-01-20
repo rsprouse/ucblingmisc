@@ -103,12 +103,12 @@ for root,dirs,files in os.walk(directory):  # walk the directory
         wsamps = int(round(window*sf))  # window size in samples
 
         # open the praat text grid        
-        pm = audiolabel.LabelManager(fromFile=os.path.join(root,tg),fromType="praat")
+        pm = audiolabel.LabelManager(from_file=os.path.join(root,tg),from_type="praat")
         
         # loop through all of the labels on the "phone" tier that match the set of fricatives
         for f in pm.tier('phone').search(fricatives):
             # from the label get the location of the midpoint, and the text of the label
-            midpoint = f.center()
+            midpoint = f.center
             phone = f.text
         
             # calculate a spectrum - store in temp.spec

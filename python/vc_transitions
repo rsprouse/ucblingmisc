@@ -106,12 +106,12 @@ gf0_proc.stdout.close()
 # Read the esps output columns as separate label file tiers. Automatically add
 # a time component to the output rows.
 lm = audiolabel.LabelManager(
-    fromFile=ppl_proc.stdout,   # read directly from pplain output
-    fromType='table',
+    from_file=ppl_proc.stdout,   # read directly from pplain output
+    from_type='table',
     sep=" ",
-    fieldsInHead=False,
+    fields_in_head=False,
     fields="f0,is_voiced,rms,acpeak",
-    t1Col=None,                 # esps output doesn't have a t1 column
+    t1_col=None,                 # esps output doesn't have a t1 column
     t1_start=t1_start,          # autocreate t1 starting with this value and
     t1_step=t1_step)             # increase by this step
 
@@ -121,11 +121,11 @@ was_voiced = False
 for lab in lm.tier('is_voiced'):
     if lab.text == '1':
         if not was_voiced:
-            pt.add(audiolabel.Label(t1=lab.t1(), text='vd'))
+            pt.add(audiolabel.Label(text='vd', t1=lab.t1))
         was_voiced = True
     else:
         if was_voiced:
-            pt.add(audiolabel.Label(t1=lab.t1(), text='vl'))
+            pt.add(audiolabel.Label(text='vl', t1=lab.t1))
         was_voiced = False
 
 # Output to STDOUT.
