@@ -211,7 +211,6 @@ EOF
 
 install_fieldworks(){
     # Packages from the sil.org repository.
-    # TODO: fieldworks requires user to accept a license agreement
 define SILPKGS <<'EOF'
 fieldworks-applications
 EOF
@@ -420,7 +419,6 @@ install_edgetrak(){
 
 install_mcr(){
     # Install Matlab MCR.
-    # TODO: mcr also involves agreeing to license
     msg="Installing Matlab runtime."
     echo $msg
     FNAME=MCR_R2014b_glnxa64_installer.zip
@@ -438,7 +436,6 @@ install_mcr(){
 
 install_display_acq(){
     # Install display_acq.
-    # TODO: fix initial display size and location
     msg="Installing display_acq."
     echo $msg
     FNAME=display_acq_2014b.tar
@@ -636,7 +633,6 @@ apt-get)
     ;;
 
 --help)
-    # TODO: better help message
     echo " "
     echo "$usage"
     echo " "
