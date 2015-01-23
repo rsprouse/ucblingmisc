@@ -306,7 +306,7 @@ install_lingpy(){
     cd /usr/local/bin && \
     wget --quiet --output-document="$FNAME2" https://raw.githubusercontent.com/rsprouse/ucblingmisc/master/python/$FNAME2 && \
     chmod +x $FNAME2 && \
-    fix_pyalign() && \
+    fix_pyalign && \
     echo DONE: $msg || echo FAIL: $msg
     cd $ORIGDIR
 }
