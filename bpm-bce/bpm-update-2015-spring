@@ -293,6 +293,7 @@ install_lingpy(){
     cd /usr/local/bin && \
     wget --quiet --output-document="$FNAME2" https://raw.githubusercontent.com/rsprouse/ucblingmisc/master/python/$FNAME2 && \
     chmod +x $FNAME2 && \
+    cd /opt/p2fa && \
     wget --quiet --output-document="$FNAME3" https://raw.githubusercontent.com/rsprouse/ucblingmisc/master/p2fa/$FNAME3 && \
     chmod +x $FNAME3 && \
     echo DONE: $msg || echo FAIL: $msg
