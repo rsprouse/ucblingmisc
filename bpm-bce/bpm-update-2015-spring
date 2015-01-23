@@ -265,6 +265,7 @@ install_lingpy(){
     FNAME4=make_text_grids
     FNAME5=fricative_analysis.py
     FNAME6=vc_transitions
+    FNAME7=align.py
     mkdir -p /usr/local/lib/site_perl && \
     cd /usr/local/lib/site_perl && \
     wget --quiet --output-document="$FNAME1" https://raw.githubusercontent.com/rsprouse/ucblingmisc/master/perl/$FNAME1 && \
@@ -292,6 +293,8 @@ install_lingpy(){
     cd /usr/local/bin && \
     wget --quiet --output-document="$FNAME2" https://raw.githubusercontent.com/rsprouse/ucblingmisc/master/python/$FNAME2 && \
     chmod +x /usr/local/bin/pyalign && \
+    wget --quiet --output-document="$FNAME6" https://raw.githubusercontent.com/rsprouse/ucblingmisc/master/p2fa/$FNAME7 && \
+    chmod +x $FNAME7 && \
     echo DONE: $msg || echo FAIL: $msg
     cd $ORIGDIR
 }
