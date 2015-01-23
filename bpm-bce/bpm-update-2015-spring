@@ -539,6 +539,9 @@ or update:
   r-packages
     A useful set of R packages for linguists.
   
+  fix-pyalign
+    Fix pyalign found in VERSION=BCE-2015-spring-BPM-1-public.
+
 Special purpose targets:
 
   bpm-update
@@ -593,6 +596,10 @@ bce-packages)
     ;;
 
 # Individual package install/update.
+fix-pyalign)
+    fix_pyalign
+    ;;
+
 neuro)
     apt_get_update
     install_neuro_packages
