@@ -265,7 +265,6 @@ install_lingpy(){
     FNAME4=make_text_grids
     FNAME5=fricative_analysis.py
     FNAME6=vc_transitions
-    FNAME7=align.py
     mkdir -p /usr/local/lib/site_perl && \
     cd /usr/local/lib/site_perl && \
     wget --quiet --output-document="$FNAME1" https://raw.githubusercontent.com/rsprouse/ucblingmisc/master/perl/$FNAME1 && \
@@ -287,14 +286,15 @@ install_lingpy(){
     echo $msg
     FNAME1=p2fa_1.003.tgz
     FNAME2=pyalign
+    FNAME3=align.py
     cd /opt && \
     wget --quiet --output-document="$FNAME1" http://www.ling.upenn.edu/phonetics/p2fa/$FNAME1 && \
     tar xzvf p2fa_1.003.tgz && \
     cd /usr/local/bin && \
     wget --quiet --output-document="$FNAME2" https://raw.githubusercontent.com/rsprouse/ucblingmisc/master/python/$FNAME2 && \
-    chmod +x /usr/local/bin/pyalign && \
-    wget --quiet --output-document="$FNAME6" https://raw.githubusercontent.com/rsprouse/ucblingmisc/master/p2fa/$FNAME7 && \
-    chmod +x $FNAME7 && \
+    chmod +x $FNAME2 && \
+    wget --quiet --output-document="$FNAME3" https://raw.githubusercontent.com/rsprouse/ucblingmisc/master/p2fa/$FNAME3 && \
+    chmod +x $FNAME3 && \
     echo DONE: $msg || echo FAIL: $msg
     cd $ORIGDIR
 }
