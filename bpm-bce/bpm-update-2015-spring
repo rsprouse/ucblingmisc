@@ -31,7 +31,7 @@
 # from template:
 # VBoxManage setextradata <VM_NAME> VBoxInternal2/SharedFoldersEnableSymlinksCreate/<SHARE_NAME> 1
 
-VERSION=BCE-2015-spring-BPM-1-public
+VERSION=BCE-2015-spring-BPM-2-public
 VERSION_SUFFIX=`echo $VERSION | cut -f 2,3 -d-`   # e.g. 2015-spring
 SCRIPTDIR=/usr/local/bin
 BARE_SCRIPTNAME=bpm-update
@@ -153,6 +153,19 @@ add_bpm_repositories(){
     add-apt-repository ppa:kirillshkrogalev/ffmpeg-next && \   # Ubuntu 14.10
     #add-apt-repository ppa:mc3man/trusty-media && \   # Ubuntu 14.04
     echo DONE: $msg || echo FAIL: $msg
+}
+
+fix_pyalign(){
+    # Fix problem with align.py found after VERSION=BCE-2015-spring-BPM-1-public.
+    FNAME=align.py
+    msg="Fixing align.py."
+    echo $msg
+    cd /opt/p2fa && \
+    cp $FNAME $FNAME.orig && \
+    wget --quiet --output-document="$FNAME" https://raw.githubusercontent.com/rsprouse/ucblingmisc/master/p2fa/$FNAME && \
+    chmod +x $FNAME && \
+    echo DONE: $msg || echo FAIL: $msg
+    cd $ORIGDIR
 }
 
 install_bce_packages(){
@@ -293,9 +306,7 @@ install_lingpy(){
     cd /usr/local/bin && \
     wget --quiet --output-document="$FNAME2" https://raw.githubusercontent.com/rsprouse/ucblingmisc/master/python/$FNAME2 && \
     chmod +x $FNAME2 && \
-    cd /opt/p2fa && \
-    wget --quiet --output-document="$FNAME3" https://raw.githubusercontent.com/rsprouse/ucblingmisc/master/p2fa/$FNAME3 && \
-    chmod +x $FNAME3 && \
+    fix_pyalign() && \
     echo DONE: $msg || echo FAIL: $msg
     cd $ORIGDIR
 }
