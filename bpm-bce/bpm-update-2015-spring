@@ -235,6 +235,28 @@ EOF
     apt_get_packages install "$SILPKGS" "BPM-BCE: Installing Linguistics packages from sil.org repository..."
 }
 
+install_ipa(){
+    # Packages from the sil.org repository.
+define SILPKGS <<'EOF'
+fonts-sil-charissil
+fonts-sil-doulossil
+ibus-kmfl
+ibus-table
+ibus-table-ipa-x-sampa
+kmfl-keyboard-ipa
+EOF
+    apt_get_packages install "$SILPKGS" "BPM-BCE: Installing IPA packages from sil.org repository..."
+    msg="Adding IPA input method."
+    echo $msg
+    SCHEMADIR=/usr/share/glib-2.0/schemas
+    FNAME=30_org.freedesktop.ibus.general.gschema.override
+    cd $SCHEMADIR && \
+    wget --quiet --output-document="$FNAME" https://github.com/rsprouse/ucblingmisc/raw/master/bpm-bce/resources/$FNAME && \
+    glib-compile-schemas $SCHEMADIR && \
+    echo DONE: $msg || echo FAIL: $msg
+    cd $ORIGDIR
+}
+
 install_ffmpeg(){
 define FFMPEGPKGS <<'EOF'
 ffmpeg
@@ -542,6 +564,9 @@ or update:
   fix-pyalign
     Fix pyalign found in VERSION=BCE-2015-spring-BPM-1-public.
 
+  ipa
+    SIL fonts containing IPA characters and input methods (keyboard mappings).
+
 Special purpose targets:
 
   bpm-update
@@ -653,6 +678,11 @@ phylogenetics)
 fieldworks)
     apt_get_update
     install_fieldworks
+    ;;
+
+ipa)
+    apt_get_update
+    install_ipa
     ;;
 
 # Miscellaneous commands that don't do any installs.
