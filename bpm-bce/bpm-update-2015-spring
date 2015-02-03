@@ -220,7 +220,7 @@ EOF
     mkdir -p $PLUGDIR && \
     cd $PLUGDIR && \
     wget --quiet --output-document="$FNAME" https://github.com/rsprouse/ucblingmisc/raw/master/opensesame/$FNAME && \
-    unzip $FNAME
+    unzip $FNAME && \
     chown -R oski.oski /home/oski/.opensesame && \
     rm $FNAME && \
     echo DONE: $msg || echo FAIL: $msg
