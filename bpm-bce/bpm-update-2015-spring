@@ -168,6 +168,18 @@ fix_pyalign(){
     cd $ORIGDIR
 }
 
+ling113_get_dict(){
+    # Get a script to download dict.local for Ling113, spring 2015.
+    FNAME=ling113_get_local_dict
+    msg="Getting ling113_get_dict"
+    echo $msg
+    cd /usr/local/bin && \
+    wget --quiet --output-document="$FNAME" https://raw.githubusercontent.com/rsprouse/ucblingmisc/master/bash/$FNAME && \
+    chmod +x $FNAME && \
+    echo DONE: $msg || echo FAIL: $msg
+    cd $ORIGDIR
+}
+
 install_bce_packages(){
     # These are packages that install from repositories already enabled in BCE.
 define STDPKGS <<'EOF'
@@ -567,6 +579,9 @@ or update:
   ipa
     SIL fonts containing IPA characters and input methods (keyboard mappings).
 
+  ling113-get-dict
+    A download script for grabbing dict.local for Ling113, spring 2015.
+
 Special purpose targets:
 
   bpm-update
@@ -683,6 +698,10 @@ fieldworks)
 ipa)
     apt_get_update
     install_ipa
+    ;;
+
+ling113-get-dict)
+    ling113_get_dict
     ;;
 
 # Miscellaneous commands that don't do any installs.
