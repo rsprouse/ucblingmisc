@@ -14,7 +14,7 @@ curl -f -L -o ${OUTFILE} ${DOC_URL}
 if [ $? == 0 ]; then
   perl -pi -e 's/\t/  /' ${OUTFILE}
   # Aligner appears to require a newline at the end of dict.local.
-  echo "\n" >> ${OUTFILE}
+  echo "" >> ${OUTFILE}
 else
   echo "Failed to retrieve data for dict.local."
   exit 1
