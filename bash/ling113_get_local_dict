@@ -3,14 +3,18 @@
 # This grabs data from a google spreadsheet and creates dict.local in the
 # current working directory. Intended for use in ling113, spring 2015.
 
-DOC_URL="https://docs.google.com/feeds/download/spreadsheets/Export?key=1WwGgZxk5RoU0TAOoJlKPUsoEgZEYjEgucD7zrK3n6Xo&exportFormat=tsv&gid=0"
-OUTFILE=dict.local
+FILEKEY="1WwGgZxk5RoU0TAOoJlKPUsoEgZEYjEgucD7zrK3n6Xo"
+GID="0"
+DOC_URL="https://docs.google.com/feeds/download/spreadsheets/Export?key=${FILEKEY}&exportFormat=tsv&gid=${GID}"
+OUTFILE="dict.local"
 
 # We bail (-f) on error so as not to overwrite a valid cache
 curl -f -L -o ${OUTFILE} ${DOC_URL}
 
 if [ $? == 0 ]; then
   perl -pi -e 's/\t/  /' ${OUTFILE}
+  # Aligner appears to require a newline at the end of dict.local.
+  echo "\n" >> ${OUTFILE}
 else
   echo "Failed to retrieve data for dict.local."
   exit 1
