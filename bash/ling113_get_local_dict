@@ -12,7 +12,9 @@ OUTFILE="dict.local"
 curl -f -L -o ${OUTFILE} ${DOC_URL}
 
 if [ $? == 0 ]; then
-  perl -pi -e 's/\t/  /' ${OUTFILE}
+  # Print first two columns iff they have word characters.
+  # Replace \t separator with two spaces.
+  perl -i -n -e "if (/^[^\t]*\w[^\t]*\t[^\t]*\w/) { s/([^\t]+)\t([^\t]+).*/\1  \2/; print}" ${OUTFILE}
   # Aligner appears to require a newline at the end of dict.local.
   echo "" >> ${OUTFILE}
 else
