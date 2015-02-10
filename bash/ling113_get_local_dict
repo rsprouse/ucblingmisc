@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # This grabs data from a google spreadsheet and creates dict.local in the
 # current working directory. Intended for use in ling113, spring 2015.
