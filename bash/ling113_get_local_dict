@@ -9,13 +9,18 @@ DOC_URL="https://docs.google.com/feeds/download/spreadsheets/Export?key=${FILEKE
 OUTFILE="dict.local"
 
 # We bail (-f) on error so as not to overwrite a valid cache
-curl -f -L -o ${OUTFILE} ${DOC_URL}
+# NOTE: inplace editing (perl -i) does *not* work in a shared folder
+# on a Windows host, which is why a temporary file is used.
+curl -f -L -o ${OUTFILE}.tmp ${DOC_URL}
 
 if [ $? == 0 ]; then
   # Print first two columns iff they have word characters.
   # Replace \t separator with two spaces.
-  perl -i -n -e "if (/^[^\t]*\w[^\t]*\t[^\t]*\w/) { s/([^\t]+)\t([^\t]+).*/\1  \2/; print}" ${OUTFILE}
-  # Aligner appears to require a newline at the end of dict.local.
+  perl -n -e "if (/^[^\t]*\w[^\t]*\t[^\t]*\w/) { s/([^\t]+)\t([^\t]+).*/\1  \2/; print}" ${OUTFILE}.tmp > ${OUTFILE}
+  if [ -f ${OUTFILE} ]; then
+    rm ${OUTFILE}.tmp
+  fi
+  # Aligner requires a newline at the end of dict.local.
   echo "" >> ${OUTFILE}
 else
   echo "Failed to retrieve data for dict.local."
