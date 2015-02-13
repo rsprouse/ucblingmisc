@@ -9,8 +9,8 @@ DOC_URL="https://docs.google.com/feeds/download/spreadsheets/Export?key=${FILEKE
 OUTFILE="dict.local"
 
 # We bail (-f) on error so as not to overwrite a valid cache
-# NOTE: inplace editing (perl -i) does *not* work in a shared folder
-# on a Windows host, which is why a temporary file is used.
+# NOTE: inplace editing (perl -i) does *not* work in a virtualbox
+# shared folder on a Windows host, which is why a temporary file is used.
 curl -f -L -o ${OUTFILE}.tmp ${DOC_URL}
 
 if [ $? == 0 ]; then
