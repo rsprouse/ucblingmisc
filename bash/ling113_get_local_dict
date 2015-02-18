@@ -14,9 +14,10 @@ OUTFILE="dict.local"
 curl -f -L -o ${OUTFILE}.tmp ${DOC_URL}
 
 if [ $? == 0 ]; then
-  # Print first two columns iff they have word characters.
+  # Print first two columns iff they have word characters and first column
+  # does not contain any whitespace.
   # Replace \t separator with two spaces.
-  perl -n -e "if (/^[^\t]*\w[^\t]*\t[^\t]*\w/) { s/([^\t]+)\t([^\t]+).*/\1  \2/; print}" ${OUTFILE}.tmp > ${OUTFILE}
+  perl -n -e "if (/^[^\s]*\w[^\s]*\t[^\t]*\w/) { s/([^\t]+)\t([^\t]+).*/\1  \2/; print}" ${OUTFILE}.tmp > ${OUTFILE}
   if [ -f ${OUTFILE} ]; then
     rm ${OUTFILE}.tmp
   fi
