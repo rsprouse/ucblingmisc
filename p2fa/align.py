@@ -284,7 +284,9 @@ if __name__ == '__main__':
 		# the signal must be resampled to one of these rates.
 		sr_models = [8000, 11025, 16000]
 	
-	if sr_override != None and sr_models != None and not sr_override in sr_models :
+        # Changed by RLS: cast sr_override to int when comparing to sr_models
+        # to prevent spurious 'invalid sample rate' errors.
+	if sr_override != None and sr_models != None and not int(sr_override) in sr_models :
 		raise ValueError, "invalid sample rate: not an acoustic model available"
 		
 	# Changed by RLS.
