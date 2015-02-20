@@ -718,7 +718,6 @@ ling113-get-dict)
     ;;
 
 ecog)
-    apt_get_update
     install_ecog
     ;;
 
