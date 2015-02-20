@@ -185,7 +185,7 @@ install_ecog(){
     msg="Getting htkmfc"
     echo $msg
     cd /usr/local/lib/python2.7/dist-packages && \
-    wget --quiet --output-document="$FNAME" https://raw.githubusercontent.com/rsprouse/ucblingmisc/master/bash/$FNAME && \
+    wget --quiet --output-document="$FNAME" https://raw.githubusercontent.com/rsprouse/ucblingmisc/master/python/$FNAME && \
     echo DONE: $msg || echo FAIL: $msg
     cd $ORIGDIR
 define HDF5PKGS <<'EOF'
