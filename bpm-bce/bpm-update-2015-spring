@@ -188,12 +188,6 @@ install_ecog(){
     wget --quiet --output-document="$FNAME" https://raw.githubusercontent.com/rsprouse/ucblingmisc/master/python/$FNAME && \
     echo DONE: $msg || echo FAIL: $msg
     cd $ORIGDIR
-define HDF5PKGS <<'EOF'
-libhdf5-dev
-EOF
-    apt_get_packages install "$HDF5PKGS" "Installing HDF5 packages..."    
-    pip install numexpr
-    pip install tables
 }
 
 install_bce_packages(){
