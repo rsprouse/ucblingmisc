@@ -180,6 +180,22 @@ ling113_get_dict(){
     cd $ORIGDIR
 }
 
+install_ecog(){
+    FNAME=htkmfc.py
+    msg="Getting htkmfc"
+    echo $msg
+    cd /usr/local/lib/python2.7/dist-packages && \
+    wget --quiet --output-document="$FNAME" https://raw.githubusercontent.com/rsprouse/ucblingmisc/master/bash/$FNAME && \
+    echo DONE: $msg || echo FAIL: $msg
+    cd $ORIGDIR
+define HDF5PKGS <<'EOF'
+libhdf5-dev
+EOF
+    apt_get_packages install "$HDF5PKGS" "Installing HDF5 packages..."    
+    pip install numexpr
+    pip install tables
+}
+
 install_bce_packages(){
     # These are packages that install from repositories already enabled in BCE.
 define STDPKGS <<'EOF'
@@ -582,6 +598,9 @@ or update:
   ling113-get-dict
     A download script for grabbing dict.local for Ling113, spring 2015.
 
+  ecog
+    Various utilities for working with ecog data.
+
 Special purpose targets:
 
   bpm-update
@@ -702,6 +721,11 @@ ipa)
 
 ling113-get-dict)
     ling113_get_dict
+    ;;
+
+ecog)
+    apt_get_update
+    install_ecog
     ;;
 
 # Miscellaneous commands that don't do any installs.
