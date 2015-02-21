@@ -48,9 +48,9 @@ convention where channel 1 is '11' and Channel 256 is '464'.'''
     )
 
 def get_bad_channels(ddir, subdir='Artifacts', fname='badChannels.txt'):
-    '''Return a tuple of bad channel numbers in ddir.'''
+    '''Return an array of bad channel numbers in ddir.'''
     with open(os.path.join(ddir, subdir, fname)) as f:
-        return (int(n) for n in f.readline().strip().split())
+        return [int(n) for n in f.readline().strip().split()]
     
 def load_ecog_htk(ddir, subdir):
     '''Load all the Wav*.htk files in ddir into a dataframe.'''
