@@ -181,9 +181,9 @@ ling113_get_dict(){
 }
 
 install_ecog(){
-    FNAME1=ecog_ucb.py
+    FNAME1=ecog_ucsf.py
     FNAME2=htkmfc.py
-    msg="Getting ecog_ucb.py and htkmfc.py"
+    msg="Getting ecog_ucsf.py and htkmfc.py"
     echo $msg
     cd /usr/local/lib/python2.7/dist-packages && \
     wget --quiet --output-document="$FNAME1" https://raw.githubusercontent.com/rsprouse/ucblingmisc/master/python/$FNAME1 && \
