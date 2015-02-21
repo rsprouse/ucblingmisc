@@ -181,11 +181,13 @@ ling113_get_dict(){
 }
 
 install_ecog(){
-    FNAME=htkmfc.py
-    msg="Getting htkmfc"
+    FNAME1=ecog_ucb.py
+    FNAME2=htkmfc.py
+    msg="Getting ecog_ucb.py and htkmfc.py"
     echo $msg
     cd /usr/local/lib/python2.7/dist-packages && \
-    wget --quiet --output-document="$FNAME" https://raw.githubusercontent.com/rsprouse/ucblingmisc/master/python/$FNAME && \
+    wget --quiet --output-document="$FNAME1" https://raw.githubusercontent.com/rsprouse/ucblingmisc/master/python/$FNAME1 && \
+    wget --quiet --output-document="$FNAME2" https://raw.githubusercontent.com/rsprouse/ucblingmisc/master/python/$FNAME2 && \
     echo DONE: $msg || echo FAIL: $msg
     cd $ORIGDIR
 }
