@@ -52,8 +52,9 @@ def get_bad_channels(ddir, subdir='Artifacts', fname='badChannels.txt'):
     with open(os.path.join(ddir, subdir, fname)) as f:
         return [int(n) for n in f.readline().strip().split()]
     
-def load_ecog_htk(ddir, subdir):
-    '''Load all the Wav*.htk files in ddir into a dataframe.'''
+def load_block(ddir, subdir):
+    '''Load all the Wav*.htk channel data in a block subdir into an ndarray.
+Return the data, sample rate, and bad channels.'''
     # Electrodes (channels) are numbered starting with 1.
     badchan = get_bad_channels(ddir)
     htk = htkmfc.open(os.path.join(ddir, subdir, int2wavname(1)))
