@@ -36,6 +36,7 @@ Quick-n-dirty loading of UCSF ecog data.
 
 from __future__ import division
 import numpy as np
+import scipy.signal
 import htkmfc
 import os
 
@@ -58,13 +59,14 @@ Return the data, sample rate, and bad channels.'''
     # Electrodes (channels) are numbered starting with 1.
     badchan = get_bad_channels(ddir)
     htk = htkmfc.open(os.path.join(ddir, subdir, int2wavname(1)))
-    rate = htk.sampPeriod * 1E-4
+    rate = htk.sampPeriod * 1E-3
     c1 = htk.getall()
-    cdata = np.empty((256, c1.shape[0], c1.shape[1])) * np.nan
+    dc1 = scipy.signal(decimate, c1)
+    cdata = np.empty((256, dc1.shape[0], dc1.shape[1])) * np.nan
     if 1 not in badchan:
-        cdata[0,:,:] = c1
+        cdata[0,:,:] = dc1
     for idx in range(2, 257):
         if idx not in badchan:
             htk = htkmfc.open(os.path.join(ddir, subdir, int2wavname(idx)))
-            cdata[idx-1,:,:] = htk.getall()
+            cdata[idx-1,:,:] = scipy.signal.decimate(htk.getall(), 10)
     return (cdata, rate, badchan)
