@@ -60,7 +60,7 @@ Return the data, sample rate, and bad channels.'''
     badchan = get_bad_channels(ddir)
     htk = htkmfc.open(os.path.join(ddir, subdir, int2wavname(1)))
     rate = htk.sampPeriod * 1E-3
-    c1 = htk.getall()
+    c1 = np.squeeze(htk.getall())
     dc1 = scipy.signal.decimate(c1, 10)
     cdata = np.empty((256, dc1.shape[0], dc1.shape[1])) * np.nan
     if 1 not in badchan:
@@ -68,5 +68,5 @@ Return the data, sample rate, and bad channels.'''
     for idx in range(2, 257):
         if idx not in badchan:
             htk = htkmfc.open(os.path.join(ddir, subdir, int2wavname(idx)))
-            cdata[idx-1,:,:] = scipy.signal.decimate(htk.getall(), 10)
+            cdata[idx-1,:,:] = scipy.signal.decimate(np.squeeze(htk.getall()), 10)
     return (cdata, rate, badchan)
