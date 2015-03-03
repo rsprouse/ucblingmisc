@@ -310,6 +310,7 @@ EOF
 install_lingpy(){
     # Required by klsyn
     pip install xlrd
+    pip install xlwt
 
     # Python packages to pull and set up from github.
     GITBASE=https://github.com/rsprouse
