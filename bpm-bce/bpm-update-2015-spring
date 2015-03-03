@@ -168,6 +168,12 @@ fix_pyalign(){
     cd $ORIGDIR
 }
 
+fix_klsyn(){
+    # Fix problem with klsyn found after VERSION=BCE-2015-spring-BPM-2-public.
+    pip install xlrd
+    pip install xlwt
+}
+
 ling113_get_dict(){
     # Get a script to download dict.local for Ling113, spring 2015.
     FNAME=ling113_get_local_dict
@@ -592,6 +598,9 @@ or update:
   fix-pyalign
     Fix pyalign found in VERSION=BCE-2015-spring-BPM-1-public.
 
+  fix-klsyn
+    Fix klsyn found in VERSION=BCE-2015-spring-BPM-2-public.
+
   ipa
     SIL fonts containing IPA characters and input methods (keyboard mappings).
 
@@ -657,6 +666,10 @@ bce-packages)
 # Individual package install/update.
 fix-pyalign)
     fix_pyalign
+    ;;
+
+fix-klsyn)
+    fix_klsyn
     ;;
 
 neuro)
