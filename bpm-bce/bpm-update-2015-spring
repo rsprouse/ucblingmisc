@@ -367,6 +367,11 @@ install_lingpy(){
     cd $ORIGDIR
 }
 
+install_ultratils(){
+    GITBASE=https://github.com/rsprouse
+    python_clone_and_setup $GITBASE ultratils
+}
+
 install_esps(){
     # esps install
     cd /usr/local/src
@@ -601,6 +606,9 @@ or update:
   fix-klsyn
     Fix klsyn found in VERSION=BCE-2015-spring-BPM-2-public.
 
+  ultratils
+    Install python code for processing Ultrasonix ultrasound data.
+
   ipa
     SIL fonts containing IPA characters and input methods (keyboard mappings).
 
@@ -670,6 +678,10 @@ fix-pyalign)
 
 fix-klsyn)
     fix_klsyn
+    ;;
+
+ultratils)
+    install_ultratils
     ;;
 
 neuro)
