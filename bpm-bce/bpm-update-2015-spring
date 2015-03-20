@@ -147,12 +147,17 @@ add_bpm_repositories(){
     tee /etc/apt/sources.list.d/neurodebian.sources.list && \
     apt-key adv --recv-keys --keyserver hkp://pgp.mit.edu:80 2649A5A9 && \
     # sil.org
-    echo "deb http://packages.sil.org/ubuntu trusty main" > /etc/apt/sources.list.d/sil.sources.list && \
+    echo "deb http://packages.sil.org/ubuntu utopic main" > /etc/apt/sources.list.d/sil.sources.list && \
     wget http://packages.sil.org/sil.gpg -O- | apt-key add - && \
     # ppa for ffmpeg--should no longer be necessary, starting with Ubuntu 15.04
     add-apt-repository ppa:kirillshkrogalev/ffmpeg-next && \   # Ubuntu 14.10
     #add-apt-repository ppa:mc3man/trusty-media && \   # Ubuntu 14.04
     echo DONE: $msg || echo FAIL: $msg
+}
+
+fix_sil(){
+    # Fix problem with sil repo pointing to wrong ubuntu version.
+    echo "deb http://packages.sil.org/ubuntu utopic main" > /etc/apt/sources.list.d/sil.sources.list
 }
 
 fix_pyalign(){
@@ -606,6 +611,9 @@ or update:
   fix-klsyn
     Fix klsyn found in VERSION=BCE-2015-spring-BPM-2-public.
 
+  fix-sil
+    Fix sil repo found in VERSION=BCE-2015-spring-BPM-2-public.
+
   ultratils
     Install python code for processing Ultrasonix ultrasound data.
 
@@ -678,6 +686,10 @@ fix-pyalign)
 
 fix-klsyn)
     fix_klsyn
+    ;;
+
+fix-sil)
+    fix_sil
     ;;
 
 ultratils)
