@@ -536,6 +536,20 @@ install_display_acq(){
     cd $ORIGDIR
 }
 
+install_creak_detect(){
+    # Install creak_detect.
+    msg="Installing creak_detect"
+    echo $msg
+    FNAME=creak_detect_web_install
+    cd /usr/local/bin && \
+    wget --quiet --output-document="$FNAME" https://github.com/rsprouse/ucblingmisc/raw/master/creak_detect-bpm/$FNAME && \
+    chmod +rx creak_detect_web_install && \
+    ./creak_detect_web_install &&\
+    rm $FNAME && \
+    echo DONE: $msg || echo FAIL: $msg
+    cd $ORIGDIR
+}
+
 define usage <<'EOF'
 
   bpm-update
@@ -740,6 +754,10 @@ mcr)
 
 display_acq)
     install_display_acq
+    ;;
+
+creak_detect)
+    install_creak_detect
     ;;
 
 phylogenetics)
