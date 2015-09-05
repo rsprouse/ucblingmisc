@@ -551,7 +551,7 @@ install_creak_detect(){
     perl -pi -e 's/echo ([S\-L"])/#echo \1/' /usr/local/creak_detect/application/run_creak_detect.sh && \
     perl -pi -e 's/shift 1/#shift 1/' /usr/local/creak_detect/application/run_creak_detect.sh && \
     perl -pi -e 's/-gt 0/-gt 2/' /usr/local/creak_detect/application/run_creak_detect.sh && \
-    perl -pi -e 's/\${exe_dir}\/creak_detect\\"" \$args/\/usr\/local\/creak_detect\/application\/creak_detect\\"" $1 $2/' /usr/local/creak_detect/application/run_creak_detect.sh && \
+    perl -pi -e 's/\${exe_dir}\/creak_detect\\"" \$args/\/usr\/local\/creak_detect\/application\/creak_detect\\"" \$1 \$2/' /usr/local/creak_detect/application/run_creak_detect.sh && \
     ln -s /usr/local/creak_detect/application/run_creak_detect.sh /usr/local/bin/creak_detect && \
     echo DONE: $msg || echo FAIL: $msg
     cd $ORIGDIR
