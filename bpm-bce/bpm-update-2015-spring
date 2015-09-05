@@ -546,6 +546,9 @@ install_creak_detect(){
     chmod +rx creak_detect_web_install && \
     ./creak_detect_web_install &&\
     rm $FNAME && \
+    perl -pi.orig -e 's/  MCRROOT="\$1"/  MCRROOT=\/usr\/local\/MATLAB\/MATLAB_Runtime\/v85\//' /usr/local/creak_detect/application/run_creak_detect.sh && \
+    perl -pi -e 's/\\<deployedMCRroot\\> args/wavfile outfile/' /usr/local/creak_detect/application/run_creak_detect.sh && \
+    ln -s /usr/local/creak_detect/application/run_creak_detect.sh /usr/local/bin/creak_detect && \
     echo DONE: $msg || echo FAIL: $msg
     cd $ORIGDIR
 }
