@@ -299,6 +299,18 @@ EOF
     apt_get_packages install "$FFMPEGPKGS" "BPM-BCE: Installing Linguistics packages from ffmpeg repository..."
 }
 
+install_splalign(){
+    # Install splalign.py
+    msg="Installing splalign.py. We do not have permission to distribute this software. We will attempt to install from a local .zip file."
+    echo $msg
+    cd /opt/ && \
+    unzip /home/oski/Desktop/splalign.zip && \
+    ln -s /opt/SPLaligner/HTK_sed_for_octalCrossBasic.sh /usr/local/bin/ && \
+    ln -s /opt/SPLaligner/splalign.py /usr/local/bin/ && \
+    echo DONE: $msg || echo FAIL: $msg
+    cd $ORIGDIR
+}
+
 install_phylogenetics(){
 define PHYLOPKGS <<'EOF'
 mrbayes
@@ -616,6 +628,11 @@ or update:
   ifcformant
     Inverse Filter Control formant tracker
 
+  splalign
+    SPLaligner, a derivative of p2fa for aligning French by Peter Milne.
+    Installs from a local .zip file since UC Berkeley Phonology Lab does
+    not have permission to distribute this package.
+
   lingpy
     Various Python packages used in the UC Berkeley Phonology Lab: audiolabel,
     klsyn, maedasyn
@@ -741,6 +758,10 @@ ifcformant)
 
 htk)
     install_htk
+    ;;
+
+splalign)
+    install_splalign
     ;;
 
 r-packages)
