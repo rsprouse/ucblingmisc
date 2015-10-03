@@ -48,7 +48,7 @@ def prep_wav(orig_wav, out_wav, sr_override, wave_start, wave_end):
 	# Changed by RLS. sox polyphase effect removed in latest versions. Replaced by rate effect.
         #os.system("sox " + orig_wav + " -r " + str(SR) + " " + out_wav + " polyphase" + soxopts)
 	print "sox: sox " + orig_wav + " " + out_wav + " rate -v " + str(SR) + " " + soxopts
-	os.system("sox " + orig_wav + " " + out_wav + " rate -v " + str(SR) + " " + soxopts)
+	os.system("sox \"" + orig_wav + "\" \"" + out_wav + "\" rate -v " + str(SR) + " " + soxopts)
     else:
         #print "Using wav file, already at sampling rate " + str(SR) + "."
 	# Changed by RLS.
