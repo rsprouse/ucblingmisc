@@ -12,7 +12,7 @@
 
 echo ***The 'pyalign' command is deprecated.***
 echo Please use 'align.py' instead. The calling syntax is the same.
-read "Press a key to continue."
+read -p "Press a key to continue."
 
 PYTHON=/usr/bin/python
 ALIGN=/opt/p2fa/align.py
