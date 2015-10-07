@@ -3,10 +3,15 @@
 # Run the p2fa align.py script with the python executable, passing all
 # input arguments to align.py.
 
-# We do this because if we symlink align.py into /usr/local/bin then
-# align.py won't find the acoustic models.
+# This script existed because when align.py was symlinked into
+# /usr/local/bin it didn't find the acoustic models. This issue has
+# now been fixed in align.py, and this script exists only for
+# compatibility, and is now deprecated.
 
 # RLS 10/26/2010
+
+echo ***The 'pyalign' command is deprecated.***
+echo Please use 'align.py' instead. The calling syntax is the same.
 
 PYTHON=/usr/bin/python
 ALIGN=/opt/p2fa/align.py
