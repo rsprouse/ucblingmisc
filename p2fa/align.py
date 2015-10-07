@@ -278,7 +278,12 @@ if __name__ == '__main__':
 	hmmsubdir = ""
 	sr_models = None
 	if mypath == None :
-		mypath = os.path.dirname(os.path.abspath(sys.argv[0])) + "/model"
+		if os.path.islink(sys.argv[0]):
+			mypath = os.path.dirname(os.path.normpath(os.readlink(sys.argv[0])))
+		else:
+			mypath = os.path.dirname(os.path.abspath(sys.argv[0]))
+		mypath += "/model"
+
 		hmmsubdir = "FROM-SR"
 		# sample rates for which there are acoustic models set up, otherwise
 		# the signal must be resampled to one of these rates.
