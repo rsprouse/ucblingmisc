@@ -85,8 +85,10 @@ while (<IN>) {
 `rm temp.txt`;
 
 # now that we have made a bunch of textgrids, let's concatenate them
-$outname = $tgrid_name.".TextGrid";
+$outname = $tgrid_name.".TextGrid.tmp";
+$final_outname = $tgrid_name.".TextGrid";
 
 `concat_pyalign_textgrids --ofile $outname $tgrid_name*.TextGrid`;
 
 `rm *_[0-9]*.TextGrid`;
+`mv $outname $final_outname`;
