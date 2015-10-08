@@ -191,6 +191,18 @@ ling113_get_dict(){
     cd $ORIGDIR
 }
 
+ling290_vot(){
+    # The VOT script used in Ling290, Fall 2015.
+    FNAME=VOT_290.py
+    msg="Getting VOT_290.py"
+    echo $msg
+    cd /usr/local/bin && \
+    wget --quiet --output-document="$FNAME" https://raw.githubusercontent.com/rsprouse/ucblingmisc/master/python/$FNAME && \
+    chmod +x $FNAME && \
+    echo DONE: $msg || echo FAIL: $msg
+    cd $ORIGDIR
+}
+
 install_ecog(){
     FNAME1=ecog_ucsf.py
     FNAME2=htkmfc.py
@@ -661,6 +673,9 @@ or update:
   ling113-get-dict
     A download script for grabbing dict.local for Ling113, spring 2015.
 
+  ling290-vot
+    The VOT script for Ling290, Fall 2015.
+
   ecog
     Various utilities for working with ecog data.
 
@@ -804,6 +819,10 @@ ipa)
 
 ling113-get-dict)
     ling113_get_dict
+    ;;
+
+ling290-vot)
+    ling290_vot
     ;;
 
 ecog)
