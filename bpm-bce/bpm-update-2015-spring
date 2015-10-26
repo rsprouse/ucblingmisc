@@ -545,6 +545,18 @@ install_mcr(){
     cd $ORIGDIR
 }
 
+install_sources_list(){
+    # Install a new sources.list with repository locations for unmaintained utopic distribution.
+    msg="Installing sources.list."
+    echo $msg
+    FNAME=sources.list
+    cd /etc/apt
+    mv sources.list sources.list.old
+    wget --quiet --output-document="$FNAME" https://github.com/rsprouse/ucblingmisc/raw/master/bpm-bce/$FNAME-spring-2015 && \
+    echo DONE: $msg || echo FAIL: $msg
+    cd $ORIGDIR
+}
+
 install_display_acq(){
     # Install display_acq.
     msg="Installing display_acq."
@@ -730,6 +742,12 @@ bpm-update)
 
 bce-packages)
     install_bce_packages
+    ;;
+
+# Get new sources.list for unmaintained utopic distribution.
+sources-list)
+    update_sources_list
+    apt_get_update
     ;;
 
 # Individual package install/update.
