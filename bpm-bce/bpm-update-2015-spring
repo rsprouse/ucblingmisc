@@ -552,7 +552,7 @@ update_sources_list(){
     FNAME=sources.list
     cd /etc/apt
     mv sources.list sources.list.old
-    wget --quiet --output-document="$FNAME" https://github.com/rsprouse/ucblingmisc/raw/master/bpm-bce/${FNAME}-spring-2015 && \
+    wget --quiet --output-document="$FNAME" https://raw.githubusercontent.com/rsprouse/ucblingmisc/master/bpm-bce/bpm-bce/${FNAME}-spring-2015 && \
     echo DONE: $msg || echo FAIL: $msg
     cd $ORIGDIR
 }
