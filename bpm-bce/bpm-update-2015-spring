@@ -506,7 +506,10 @@ echo $r_cmd | sudo /usr/bin/Rscript --no-restore --no-save -
 # wine depends on ttt-mscorefont-installer and requires user to accept a license agreement
 install_wine(){
     # Needed for EdgeTrak
-    apt_get_packages install wine "BPM-BCE: Installing wine from standard repositories..."
+    # Had to add --force-yes in October 2015.
+    echo "BPM-BCE: Installing wine from standard repositories..."
+    apt-get -q -y --force-yes install wine
+    echo "DONE installing wine"
 }
 
 install_edgetrak(){
