@@ -160,6 +160,21 @@ fix_sil(){
     echo "deb http://packages.sil.org/ubuntu utopic main" > /etc/apt/sources.list.d/sil.sources.list
 }
 
+fix_audio_rate(){
+    # Fix issue with modprobe not identifying correct rate for ac97 sound device.
+    msg="Fixing audio rate."
+    echo $msg
+    FIX_CNT=$(grep 'options snd-intel8x0 ac97_clock=48000' /etc/modprobe.d/alsa-base.conf|wc -l)
+    if [ "$FIX_CNT" == "0" ]
+    then
+        echo '# Fix audio rate issue where ac97 clock not correctly identified.' >> /etc/modprobe.d/alsa-base.conf
+        echo 'options snd-intel8x0 ac97_clock=48000' >> /etc/modprobe.d/alsa-base.conf
+        echo 'Audio fix applied. Reboot the virtual machine to finish.'
+    else
+        echo 'Audio fix already applied. No changes have been made.'
+    fi
+}
+
 fix_pyalign(){
     # Fix problem with align.py found after VERSION=BCE-2015-spring-BPM-1-public.
     FNAME=align.py
@@ -761,6 +776,10 @@ fix-klsyn)
 
 fix-sil)
     fix_sil
+    ;;
+
+fix-audio-rate)
+    fix_audio_rate
     ;;
 
 ultratils)
