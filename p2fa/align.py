@@ -48,7 +48,7 @@ def prep_wav(orig_wav, out_wav, sr_override, wave_start, wave_end):
 	# Changed by RLS. sox polyphase effect removed in latest versions. Replaced by rate effect.
         #os.system("sox " + orig_wav + " -r " + str(SR) + " " + out_wav + " polyphase" + soxopts)
 	print "sox: sox " + orig_wav + " " + out_wav + " rate -v " + str(SR) + " " + soxopts
-	os.system("sox \"" + orig_wav + "\" \"" + out_wav + "\" rate -v " + str(SR) + " " + soxopts)
+	os.system("sox " + orig_wav + " " + out_wav + " rate -v " + str(SR) + " " + soxopts)
     else:
         #print "Using wav file, already at sampling rate " + str(SR) + "."
 	# Changed by RLS.
@@ -182,38 +182,56 @@ def writeTextGrid(outfile, word_alignments) :
 		wrds.append([wrd[0], wrd[1][1], wrd[-1][2]]) # word label, first phone start time, last phone end time
 	
     #write the phone interval tier
+# Changed by RLS to ensure consistent number of digits in time strings.
 	fw = open(outfile, 'w')
 	fw.write('File type = "ooTextFile short"\n')
 	fw.write('"TextGrid"\n')
 	fw.write('\n')
-	fw.write(str(phons[0][1]) + '\n')
-	fw.write(str(phons[-1][2]) + '\n')
+	fw.write('{:0.4f}\n'.format(phons[0][1]))
+	fw.write('{:0.4f}\n'.format(phons[-1][2]))
+	#fw.write(str(phons[0][1]) + '\n')
+	#fw.write(str(phons[-1][2]) + '\n')
 	fw.write('<exists>\n')
 	fw.write('2\n')
 	fw.write('"IntervalTier"\n')
 	fw.write('"phone"\n')
-	fw.write(str(phons[0][1]) + '\n')
-	fw.write(str(phons[-1][-1]) + '\n')
-	fw.write(str(len(phons)) + '\n')
+	fw.write('{:0.4f}\n'.format(phons[0][1]))
+	fw.write('{:0.4f}\n'.format(phons[-1][-1]))
+	fw.write('{:d}\n'.format(len(phons)))
+	#fw.write(str(phons[0][1]) + '\n')
+	#fw.write(str(phons[-1][-1]) + '\n')
+	#fw.write(str(len(phons)) + '\n')
 	for k in range(len(phons)):
-		fw.write(str(phons[k][1]) + '\n')
-		fw.write(str(phons[k][2]) + '\n')
-		fw.write('"' + phons[k][0] + '"' + '\n')
+		fw.write('{:0.4f}\n'.format(phons[k][1]))
+		fw.write('{:0.4f}\n'.format(phons[k][2]))
+		fw.write('"{:}"\n'.format(phons[k][0]))
+		#fw.write(str(phons[k][1]) + '\n')
+		#fw.write(str(phons[k][2]) + '\n')
+		#fw.write('"' + phons[k][0] + '"' + '\n')
 	
 	#write the word interval tier
 	fw.write('"IntervalTier"\n')
 	fw.write('"word"\n')
-	fw.write(str(phons[0][1]) + '\n')
-	fw.write(str(phons[-1][-1]) + '\n')
-	fw.write(str(len(wrds)) + '\n')
+	fw.write('{:0.4f}\n'.format(phons[0][1]))
+	fw.write('{:0.4f}\n'.format(phons[-1][-1]))
+	fw.write('{:d}\n'.format(len(wrds)))
+	#fw.write(str(phons[0][1]) + '\n')
+	#fw.write(str(phons[-1][-1]) + '\n')
+	#fw.write(str(len(wrds)) + '\n')
 	for k in range(len(wrds) - 1):
-		fw.write(str(wrds[k][1]) + '\n')
-		fw.write(str(wrds[k+1][1]) + '\n')
-		fw.write('"' + wrds[k][0] + '"' + '\n')
+		fw.write('{:0.4f}\n'.format(wrds[k][1]))
+		fw.write('{:0.4f}\n'.format(wrds[k+1][1]))
+		fw.write('"{:}"\n'.format(wrds[k][0]))
+		#fw.write(str(wrds[k][1]) + '\n')
+		#fw.write(str(wrds[k+1][1]) + '\n')
+		#fw.write('"' + wrds[k][0] + '"' + '\n')
 	
-	fw.write(str(wrds[-1][1]) + '\n')
-	fw.write(str(phons[-1][2]) + '\n')
-	fw.write('"' + wrds[-1][0] + '"' + '\n')               
+	fw.write('{:0.4f}\n'.format(wrds[-1][1]))
+	fw.write('{:0.4f}\n'.format(phons[-1][2]))
+	fw.write('"{:}"\n'.format(wrds[-1][0]))
+	#fw.write(str(wrds[-1][1]) + '\n')
+	#fw.write(str(phons[-1][2]) + '\n')
+	#fw.write('"' + wrds[-1][0] + '"' + '\n')               
 	
 	fw.close()
 
@@ -278,12 +296,7 @@ if __name__ == '__main__':
 	hmmsubdir = ""
 	sr_models = None
 	if mypath == None :
-		if os.path.islink(sys.argv[0]):
-			mypath = os.path.dirname(os.path.normpath(os.readlink(sys.argv[0])))
-		else:
-			mypath = os.path.dirname(os.path.abspath(sys.argv[0]))
-		mypath += "/model"
-
+		mypath = os.path.dirname(os.path.abspath(sys.argv[0])) + "/model"
 		hmmsubdir = "FROM-SR"
 		# sample rates for which there are acoustic models set up, otherwise
 		# the signal must be resampled to one of these rates.
