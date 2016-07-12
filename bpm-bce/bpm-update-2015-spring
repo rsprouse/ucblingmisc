@@ -299,6 +299,9 @@ EOF
 
 install_ipa(){
     # Packages from the sil.org repository.
+    # See http://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&id=UniIPAKeyboard#dfc8e3bf for install
+    # instructions and http://linux.lsdev.sil.org/wiki/index.php/Installing_KMFL_on_Ubuntu for user instructions
+    # on keyboard selection.
 define SILPKGS <<'EOF'
 fonts-sil-charissil
 fonts-sil-doulossil
