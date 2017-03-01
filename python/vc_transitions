@@ -70,7 +70,7 @@ import audiolabel
 wavfile = sys.argv[-1]
 if wavfile == '--help' or len(sys.argv) == 1:
     scriptname = sys.argv[0].split("/")[-1]
-    print __doc__.format(scriptname=scriptname)
+    print(__doc__.format(scriptname=scriptname))
     if len(sys.argv) == 1:
         exit(1)
     else:
@@ -131,4 +131,4 @@ for lab in lm.tier('is_voiced'):
 # Output to STDOUT.
 outm = audiolabel.LabelManager()
 outm.add(pt)
-print outm._as_string('praat_long')
+print(outm._as_string('praat_long'))
