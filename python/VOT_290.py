@@ -152,7 +152,7 @@ def spec_burst (s,e,sf,sd):
                 break
 
             
-stops = re.compile("^{P|B|T|D|K|G}$")
+stops = re.compile("^(P|B|T|D|K|G)$")
 vowels = re.compile(
          "^(?P<vowel>AA|AE|AH|AO|AW|AXR|AX|AY|EH|ER|EY|IH|IX|IY|OW|OY|UH|UW|UX)(?P<stress>\d)?$"
       )
