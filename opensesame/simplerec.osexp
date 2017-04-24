@@ -1,0 +1,216 @@
+---
+API: 2
+OpenSesame: 3.1.6
+Platform: nt
+---
+set width 1024
+set uniform_coordinates yes
+set title "New experiment"
+set subject_parity even
+set subject_nr 0
+set start experiment
+set sound_sample_size -16
+set sound_freq 48000
+set sound_channels 2
+set sound_buf_size 1024
+set sampler_backend legacy
+set round_decimals 2
+set mouse_backend legacy
+set keyboard_backend legacy
+set height 768
+set fullscreen no
+set form_clicks no
+set foreground white
+set font_underline no
+set font_size 18
+set font_italic no
+set font_family mono
+set font_bold no
+set experiment_path "U:/diskrec"
+set disable_garbage_collection yes
+set description "The main experiment item"
+set coordinates uniform
+set compensation 0
+set color_backend legacy
+set clock_backend legacy
+set canvas_backend legacy
+set bidi no
+set background black
+
+define inline_script _define_recorder
+	set description "Executes Python code"
+	___run__
+	''' *** DO NOT MAKE CHANGES TO THIS INLINE SCRIPT *** '''
+	
+	# Copied from
+	# https://gist.githubusercontent.com/sloria/5693955/raw/88f2f14a32deff2308e2fa332fc82b4de402c29f/recorder.py
+	
+	'''recorder.py
+	Provides WAV recording functionality via two approaches:
+	
+	Blocking mode (record for a set duration):
+	>>> rec = Recorder(channels=2)
+	>>> with rec.open('blocking.wav', 'wb') as recfile:
+	...     recfile.record(duration=5.0)
+	
+	Non-blocking mode (start and stop recording):
+	>>> rec = Recorder(channels=2)
+	>>> with rec.open('nonblocking.wav', 'wb') as recfile2:
+	...     recfile2.start_recording()
+	...     time.sleep(5.0)
+	...     recfile2.stop_recording()
+	'''
+	
+	class Recorder(object):
+		'''A recorder class for recording audio to a WAV file.
+		Records in mono by default.
+		'''
+	
+		def __init__(self, channels=1, rate=44100, frames_per_buffer=1024):
+			self.channels = channels
+			self.rate = rate
+			self.frames_per_buffer = frames_per_buffer
+	
+		def open(self, fname, mode='wb'):
+			return RecordingFile(fname, mode, self.channels, self.rate,
+								self.frames_per_buffer)
+	
+	class RecordingFile(object):
+		def __init__(self, fname, mode, channels, 
+					rate, frames_per_buffer):
+			self.fname = fname
+			self.mode = mode
+			self.channels = channels
+			self.rate = rate
+			self.frames_per_buffer = frames_per_buffer
+			self._pa = pyaudio.PyAudio()
+			self.wavefile = self._prepare_file(self.fname, self.mode)
+			self._stream = None
+	
+		def __enter__(self):
+			return self
+	
+		def __exit__(self, exception, value, traceback):
+			self.close()
+	
+		def record(self, duration):
+			# Use a stream with no callback function in blocking mode
+			self._stream = self._pa.open(format=pyaudio.paInt16,
+											channels=self.channels,
+											rate=self.rate,
+											input=True,
+											frames_per_buffer=self.frames_per_buffer)
+			for _ in range(int(self.rate / self.frames_per_buffer * duration)):
+				audio = self._stream.read(self.frames_per_buffer)
+				self.wavefile.writeframes(audio)
+			return None
+	
+		def start_recording(self):
+			# Use a stream with a callback in non-blocking mode
+			self._stream = self._pa.open(format=pyaudio.paInt16,
+											channels=self.channels,
+											rate=self.rate,
+											input=True,
+											frames_per_buffer=self.frames_per_buffer,
+											stream_callback=self.get_callback())
+			self._stream.start_stream()
+			return self
+	
+		def stop_recording(self):
+			self._stream.stop_stream()
+			return self
+	
+		def get_callback(self):
+			def callback(in_data, frame_count, time_info, status):
+				self.wavefile.writeframes(in_data)
+				return in_data, pyaudio.paContinue
+			return callback
+	
+	
+		def close(self):
+			self._stream.close()
+			self._pa.terminate()
+			self.wavefile.close()
+	
+		def _prepare_file(self, fname, mode='wb'):
+			wavefile = wave.open(fname, mode)
+			wavefile.setnchannels(self.channels)
+			wavefile.setsampwidth(self._pa.get_sample_size(pyaudio.paInt16))
+			wavefile.setframerate(self.rate)
+			return wavefile
+	__end__
+	set _prepare ""
+
+define inline_script config
+	set description "Executes Python code"
+	___run__
+	import os
+	import pyaudio
+	import wave
+	
+	# Where to store data files.
+	expdir = os.path.normpath('U:/diskrec')
+	
+	# Recording parameters.
+	channels = 2
+	rate = 48000
+	frames_per_buffer = 1024
+	__end__
+	set _prepare ""
+
+define sequence experiment
+	set flush_keyboard yes
+	set description "Runs a number of items in sequence"
+	run config always
+	run _define_recorder always
+	run stimuli always
+
+define inline_script start_recorder
+	set description "Executes Python code"
+	___run__
+	# Construct the name of your .wav file from experiment variable(s).
+	fname = os.path.join(expdir, var.stimulus + '.wav')
+	
+	# Create a RecordingFile object and start recording.
+	wavfile = RecordingFile(fname, 'wb', channels, rate, frames_per_buffer)
+	wavfile.start_recording()
+	__end__
+	set _prepare ""
+
+define sequence stim_sequence
+	set flush_keyboard yes
+	set description "Runs a number of items in sequence"
+	run start_recorder always
+	run welcome always
+	run stop_recording always
+
+define loop stimuli
+	set source_file ""
+	set source table
+	set repeat 1
+	set order random
+	set description "Repeatedly runs another item"
+	set cycles 3
+	set continuous no
+	set break_if_on_first yes
+	set break_if never
+	setcycle 0 stimulus "test.0"
+	setcycle 1 stimulus "test.1"
+	setcycle 2 stimulus "test.2"
+	run stim_sequence
+
+define inline_script stop_recording
+	set description "Executes Python code"
+	___run__
+	wavfile.stop_recording()
+	wavfile.close()
+	__end__
+	set _prepare ""
+
+define sketchpad welcome
+	set start_response_interval no
+	set reset_variables no
+	set duration keypress
+	set description "Displays stimuli"
+	draw textline center=1 color=white font_bold=no font_family=serif font_italic=no font_size=32 html=yes show_if=always text="say [stimulus] again" x=0 y=0 z_index=0
+
