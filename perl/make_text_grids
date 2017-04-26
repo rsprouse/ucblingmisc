@@ -39,12 +39,13 @@ use SoundLabel;
 
 
 if ($ARGV[0] eq "-h") {
-    print "example: ./make_text_grids transcript.txt sound.wav\n";
+    print "example: ./make_text_grids sound.wav transcript.txt sound.TextGrid\n";
     exit;
 }
 
-$TL = $ARGV[0];  # transcript
-$wav = $ARGV[1];  # wav file
+$wav = $ARGV[0];  # wav file
+$TL = $ARGV[1];  # transcript
+$tg = $ARGV[2]; #textgrid target
 
 die "$TL: $!\n" unless (-e $TL);
 die "$wav: $!\n" unless (-e $wav);
@@ -58,8 +59,11 @@ $end = $bignumber;
 open (IN, "<$TL") or die "open $TL failed: $!\n";
 open (OUT, ">temp.txt") or die "open temp.txt failed $!\n";
 
-$tgrid_name = basename($wav,".wav");
-$outname = $tgrid_name.".TextGrid";
+($file,$dir) = fileparse($tg,".TextGrid");
+$tgrid_name = $dir . $file;
+#print $tgrid_name;
+
+$outname = $tg;
 
 if (-e $outname) {
     $old_tgrid = $outname.".old";
@@ -70,7 +74,7 @@ while (<IN>) {
 #    print $_;
     if (/^#(.+)/) {  # line is a skip # x, y
 	($end,$temp) = split(/,/,$1);
-	print "\nSkipping from time $end to time $temp.\n";
+#	print "\nSkipping from time $end to time $temp.\n";
 	if ($end>$start) {
 	    close OUT;
 	    $outname = $tgrid_name."_".$count.".TextGrid";
@@ -86,7 +90,12 @@ while (<IN>) {
     } else {printf OUT $_;}
 }
 
-if ($start > $end) {  # there was no final skip mark
+$file_length = `sox $wav -n stat 2>&1|grep "Length (seconds):"`;
+# extract in $1 the duration from the sox line
+$file_length =~ m/Length \(seconds\):\s*([0-9]+\.[0-9]+)\s*/; 
+
+# $start not after end of file, but start is greater than $end marker
+if (($start <= $1) & ($start > $end)) {  # there was no final skip mark
     close OUT;
     $outname = $tgrid_name."_".$count.".TextGrid";
     `pyalign -s $start $wav temp.txt $outname`;
