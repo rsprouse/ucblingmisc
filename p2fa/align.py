@@ -6,6 +6,7 @@
       	-r sampling_rate -- override which sample rate model to use, one of 8000, 11025, and 16000
         -s start_time    -- start of portion of wavfile to align (in seconds, default 0)
         -e end_time      -- end of portion of wavfile to align (in seconds, defaul to end)
+        -c channel       -- channel to align (default 1) # change by EWW; stereo functionality
 			
 	You can also import this file as a module and use the functions directly.
 """
@@ -33,6 +34,7 @@ def prep_wav(orig_wav, out_wav, sr_override, wave_start, wave_end):
     f.close()
     
     soxopts = ""
+    soxopts += " remix " + str(channel) # change by EWW; stereo functionality
     if float(wave_start) != 0.0 or wave_end != None :
     	soxopts += " trim " + wave_start
     	if wave_end != None :
@@ -266,7 +268,7 @@ def getopt2(name, opts, default = None) :
 if __name__ == '__main__':
 	
 	try:
-		opts, args = getopt.getopt(sys.argv[1:], "r:s:e:", ["model="])
+		opts, args = getopt.getopt(sys.argv[1:], "r:s:e:c:", ["model="])
 		
 		# get the three mandatory arguments
 		if len(args) != 3 :
@@ -279,6 +281,7 @@ if __name__ == '__main__':
 		wave_end = getopt2("-e", opts, None)
 		surround_token = "sp" #getopt2("-p", opts, 'sp')
 		between_token = "sp" #getopt2("-b", opts, 'sp')
+                channel = getopt2("-c", opts, "1") # change by EWW; stereo functionality
 		
 		if surround_token.strip() == "":
 			surround_token = None
