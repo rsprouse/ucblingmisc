@@ -36,7 +36,11 @@ import getopt
 import subprocess
 import audiolabel
 
-standard_usage_str = '''multi_align [--tiers tierstring] [--dict-codec codec] [--out-codec codec] [--in-codec codec] [--no-check-dict] [--input textgrid] [--output textgrid] [--align_cmd aligner_path] wavfile'''
+standard_usage_str = '''
+multi_align [--tiers tierstring] [--dict-codec codec] [--out-codec codec]
+[--in-codec codec] [--no-check-dict] [--input textgrid] [--output textgrid]
+[--align_cmd aligner_path] wavfile
+'''
 help_usage_str = '''multi_align --help|-h'''
 
 def usage():
@@ -73,7 +77,9 @@ Optional parameters:
 
     If the --tiers parameter is not used, then all tiers will be aligned.
 
-    To align specific tiers to stereo or multi-channel audio, specify channel assignments by putting a colon and then the channel number after the tier name.
+    To align specific tiers to stereo or multi-channel audio, specify channel
+    assignments by putting a colon and then the channel number after the tier
+    name.
 
         Examples:
 
@@ -83,7 +89,8 @@ Optional parameters:
         # Align labels in tiers named 'speaker1' and 'speaker2'
         --tiers speaker1,speaker2
 
-        # Align labels in tier 'speaker' to channel 1 and in tier 'speaker2' to channel 2
+        # Align labels in tier 'speaker' to channel 1 and in tier 'speaker2'
+          to channel 2
         --tiers speaker1,speaker2:2
 
     --dict-codec codec
@@ -142,7 +149,9 @@ Output file:
     )
 
 def find_missing_dictwords(tiers, pattern, main_dict, local_dict, dictcodec):
-    '''Search tiers for labels matching pattern and determine if there are any words in those labels that are not in the dictionary. Return a list of missing words, or None if no words are missing.'''
+    '''Search tiers for labels matching pattern and determine if there are any
+words in those labels that are not in the dictionary. Return a list of missing
+words, or None if no words are missing.'''
     nonempty = re.compile(r'\S')
     mwords = []
     lwords = []
@@ -283,9 +292,14 @@ if __name__ == '__main__':
     pat = re.compile(r'(.+):(\d+)$')
     for o, a in opts:
         if o in ("--tiers"):
-            tiersfull = [item + ':1'  if pat.search(item) is None else item for item in a.split(',')] # default to channel 1
-            tiersdict = dict([(m.group(1), m.group(2)) for item in tiersfull for m in [pat.search(item)]]) # convert to dict with tier names as keys and channel as values
-            # TO-DO; this will break if colons are included elsewhere in the string
+            # Add channel 1 default where not explicitly provided by user.
+            tfull = [
+                i + ':1' if pat.search(i) is None else i for i in a.split(',')
+            ]
+            # Create dict with tier names as keys and channel as values.
+            tiersdict = dict([
+                (m.group(1), m.group(2)) for i in tfull for m in [pat.search(i)]
+            ])
             tiernames = tiersdict.keys()
         elif o in ("--dict-codec"):
             dictcodec = a
