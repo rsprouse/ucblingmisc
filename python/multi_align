@@ -73,6 +73,8 @@ Optional parameters:
 
     If the --tiers parameter is not used, then all tiers will be aligned.
 
+    To align specific tiers to stereo or multi-channel audio, specify channel assignments by putting a colon and then the channel number after the tier name.
+
         Examples:
 
         # Align labels in tier named 'speaker'
@@ -80,6 +82,9 @@ Optional parameters:
 
         # Align labels in tiers named 'speaker1' and 'speaker2'
         --tiers speaker1,speaker2
+
+        # Align labels in tier 'speaker' to channel 1 and in tier 'speaker2' to channel 2
+        --tiers speaker1,speaker2:2
 
     --dict-codec codec
     Codec from the Python codec module used for decoding of the aligner's
@@ -192,9 +197,9 @@ Note that the tier is passed by reference and altered in place.'''
     for l in labels:
         tier.add(l)
 
-def multi_align_tier(tier, wav, pattern=None, dictcodec=None,
+def multi_align_tier(tier, wav, channel, pattern=None, dictcodec=None,
         align_cmd='pyalign'):
-    '''Align all the non-emtpy labels in a tier on wav. Return the output
+    '''Align all the non-empty labels in a tier on wav. Return the output
 phone and word tiers.'''
     temp_tg = 'temp_textgrid.TextGrid'
     temp_txt = 'temp_transcript.txt'
@@ -221,6 +226,7 @@ phone and word tiers.'''
             align_cmd,
             '-s', str(lab.t1),
             '-e', str(lab.t2),
+            '-c', str(channel),
             wav,
             temp_txt,
             temp_tg
@@ -274,9 +280,13 @@ if __name__ == '__main__':
     outcodec=None
     incodec=None
     align_cmd = 'pyalign'
+    pat = re.compile(r'(.+):(\d+)$')
     for o, a in opts:
         if o in ("--tiers"):
-            tiernames = a.split(',')
+            tiersfull = [item + ':1'  if pat.search(item) is None else item for item in a.split(',')] # default to channel 1
+            tiersdict = dict([(m.group(1), m.group(2)) for item in tiersfull for m in [pat.search(item)]]) # convert to dict with tier names as keys and channel as values
+            # TO-DO; this will break if colons are included elsewhere in the string
+            tiernames = tiersdict.keys()
         elif o in ("--dict-codec"):
             dictcodec = a
         elif o in ("--out-codec"):
@@ -335,9 +345,14 @@ if __name__ == '__main__':
             sys.exit(3)
 
     for tier in tiers:
+        try:
+            channel = tiersdict[tier.name]
+        except NameError: # no tiersdict because no --tiers arg
+            channel = 1
         phonetier, wordtier = multi_align_tier(
             tier,
             wav,
+            channel,
             pattern=pattern,
             dictcodec=dictcodec,
             align_cmd=align_cmd
