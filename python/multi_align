@@ -280,10 +280,11 @@ if __name__ == '__main__':
     outcodec=None
     incodec=None
     align_cmd = 'pyalign'
+    pat = re.compile(r'(.+):(\d+)$')
     for o, a in opts:
         if o in ("--tiers"):
-            tiersfull = [item + ':1'  if re.search(':[0-9]$',item) is None else item for item in a.split(',')] # default to channel 1
-            tiersdict = dict(item.split(':') for item in tiersfull) # convert to dict with tier names as keys and channel as values
+            tiersfull = [item + ':1'  if pat.search(item) is None else item for item in a.split(',')] # default to channel 1
+            tiersdict = dict([(m.group(1), m.group(2)) for item in tiersfull for m in [pat.search(item)]]) # convert to dict with tier names as keys and channel as values
             # TO-DO; this will break if colons are included elsewhere in the string
             tiernames = tiersdict.keys()
         elif o in ("--dict-codec"):
