@@ -162,7 +162,7 @@ words, or None if no words are missing.'''
         pass
     try:
         with open(local_dict, 'r', encoding=dictcodec) as ldict:
-            lwords = [line.split()[0] for line in ldict]
+            lwords = [line.split()[0] for line in ldict if nonempty.search(line)]
     except IOError:
         pass
     dictwords = mwords + lwords
