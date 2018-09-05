@@ -39,7 +39,7 @@ import audiolabel
 standard_usage_str = '''
 multi_align [--tiers tierstring] [--dict-codec codec] [--out-codec codec]
 [--in-codec codec] [--no-check-dict] [--input textgrid] [--output textgrid]
-[--align_cmd aligner_path] wavfile
+[--align-cmd aligner_path] wavfile
 '''
 help_usage_str = '''multi_align --help|-h'''
 
@@ -128,7 +128,7 @@ Optional parameters:
     textgrid named 'myfile.TextGrid' is 'myfile.multi_align.TextGrid'.
     Use --output to specify an alternative name.
 
-    --align_cmd aligner_path
+    --align-cmd aligner_path
     The name of the aligner executable to be invoked as the first argument
     when creating the aligner process via Python's subprocess module.
     If the path is not provided as part of the name, the executable must be
