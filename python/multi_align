@@ -38,8 +38,9 @@ import audiolabel
 
 standard_usage_str = '''
 multi_align [--tiers tierstring] [--dict-codec codec] [--out-codec codec]
-[--in-codec codec] [--no-check-dict] [--input textgrid] [--output textgrid]
-[--align-cmd aligner_path] wavfile
+[--in-codec codec] [--no-check-dict] [--input-type type] [--input textgrid]
+[--output textgrid] [--align-cmd aligner_path] [--raw2tg textgrid]
+wavfile
 '''
 help_usage_str = '''multi_align --help|-h'''
 
@@ -93,6 +94,9 @@ Optional parameters:
           to channel 2
         --tiers speaker1,speaker2:2
 
+    If you use the '--input-type raw' parameter, a single tier named 'speaker'
+    is available for mapping to an input audio channel.
+
     --dict-codec codec
     Codec from the Python codec module used for decoding of the aligner's
     dictionary. Use this parameter if the encoding used by your dictionary
@@ -107,19 +111,31 @@ Optional parameters:
 
     --in-codec codec
     Codec from the Python codec module used for decoding of input textgrid.
-    Default is 'utf-8'. Normally textgrid encoding can be detected
-    automatically. Use this parameter if automatic detection fails.
+    Normally textgrid encoding can be detected automatically. Use this parameter
+    if automatic detection fails.
 
     --no-check-dict
     When this parameter is included the aligner will always run without
     checking that all of the words in the input textgrid are found in the
     dictionary.
 
-    --input textgrid
+    --input-type 'textgrid'|'raw' (default: 'textgrid')
+    If included, this parameter indicates the kind of input transcript
+    file. The default is 'textgrid' for a Praat textgrid. The other option
+    is 'raw' for a simple text file with no time indicators; the utterance
+    in the raw input file will be aligned to the entire audio file.
+    If you need to use the --tier parameter to map the raw transcript to an
+    input audio channel, use the tier name 'speaker'.
+
+    See also the --input and --raw2tg parameters for interactions with
+    this parameter.
+
+    --input textgrid (default) or raw text file
     The name of the input textgrid with labels to align. If this parameter is
     not provided, then the script will look for a file with the same name as
     wavfile and with the extension '.TextGrid', for example, 'myfile.TextGrid'
-    for 'myfile.wav'.
+    for 'myfile.wav'. If '--input-type raw' was also used, then the
+    default input filename has the extension '.txt' instead of '.TextGrid'.
 
     --output textgrid
     By default the input textgrid name forms the basis of the output
@@ -133,7 +149,18 @@ Optional parameters:
     when creating the aligner process via Python's subprocess module.
     If the path is not provided as part of the name, the executable must be
     found in the environment $PATH. Default is 'pyalign'.
-    
+
+    --raw2tg textgrid
+    If included, this parameter provides the name of a textgrid that is
+    created from a raw input file and suitable for use as an input
+    textgrid on a future invocation of multi_align. This textgrid contains
+    a single tier (named 'speaker') that contains a single label. This label
+    contains the raw input transcript and extends over the entire length of
+    the audio file.
+
+    This parameter requires '--input-type raw' and throws an error if
+    --input-type is not 'raw'.
+
 Output file:
 
     The output file is a textgrid with two tiers (word and phone) for each input
@@ -145,8 +172,15 @@ Output file:
     If multiple tiers are aligned, the output tiers are named by concatenating
     the suffixes '_word' and '_phone' to the input tier names, e.g.
     'speaker1_word' and 'speaker1_phone' for input tier 'speaker1'.
+
+    See also --raw2tg for a secondary output file that can be created.
 '''
     )
+
+def duration(audiofile):
+    '''Return the duration of an audio file.'''
+    dur = subprocess.check_output(['sox', '--info', '-D', audiofile]).strip()
+    return float(dur)
 
 def find_missing_dictwords(tiers, pattern, main_dict, local_dict, dictcodec):
     '''Search tiers for labels matching pattern and determine if there are any
@@ -271,7 +305,8 @@ if __name__ == '__main__':
             sys.argv[1:],
             "h",
             ["tiers=", "dict-codec=", "out-codec=", "in-codec=", "input=",
-             "output=", "no-check-dict", "align-cmd", "help"]
+             "output=", "no-check-dict", "input-type=", "raw2tg=", "align-cmd=",
+             "help"]
         )
     except getopt.GetoptError as err:
         sys.stderr.write(str(err))
@@ -280,15 +315,17 @@ if __name__ == '__main__':
     wav = None
     textgrid = None
     outfile = None
-    pattern=r'\S'
+    pattern = r'\S'
     main_dict = '/opt/p2fa/model/dict'
     local_dict = 'dict.local'
     check_dict = True
     tiernames = []
-    dictcodec=None
-    outcodec=None
-    incodec=None
+    dictcodec = None
+    outcodec = None
+    incodec = None
     align_cmd = 'pyalign'
+    is_raw_input = False
+    raw2tg_file = None
     pat = re.compile(r'(.+):(\d+)$')
     for o, a in opts:
         if o in ("--tiers"):
@@ -313,6 +350,10 @@ if __name__ == '__main__':
             outfile = a
         elif o in ("--no-check-dict"):
             check_dict = False
+        elif o in ("--input-type"):
+            is_raw_input = a == 'raw'
+        elif o in ("--raw2tg"):
+            raw2tg_file = a
         elif o in ("--align-cmd"):
             align_cmd = a
         elif o in ("-h", "--help"):
@@ -320,7 +361,8 @@ if __name__ == '__main__':
             sys.exit(0)
     try:
         wav = args[0]
-    except ValueError:
+    except:
+        print('\n[ERROR]: input audio file not specified')
         usage()
         sys.exit(2)
     if textgrid is None:
@@ -328,13 +370,35 @@ if __name__ == '__main__':
         textgrid = bname + '.TextGrid'
     if outfile is None:
         bname, ext = os.path.splitext(textgrid)
-        outfile = bname + '.multi_align' + ext
-        
-    inm = audiolabel.LabelManager(
-        from_file=textgrid,
-        from_type='praat',
-        codec=incodec
-    )
+        if is_raw_input is False:
+            outfile = bname + '.multi_align' + ext
+        else:
+            outfile = bname + '.multi_align.TextGrid'
+    if raw2tg_file is not None and is_raw_input is False:
+        print('\n[ERROR]: --raw2tg requires --input-type raw')
+        usage()
+        sys.exit(2)
+
+    if is_raw_input is False:
+        inm = audiolabel.LabelManager(
+            from_file=textgrid,
+            from_type='praat',
+            codec=incodec
+        )
+    else:
+        if incodec is None:
+            incodec = 'utf-8'
+        dur = duration(wav)
+        tier = audiolabel.IntervalTier(end=dur, name='speaker')
+        with open(textgrid, 'r', encoding=incodec) as infile:
+            transcript = infile.read()
+        tier.add(
+            audiolabel.Label(text=transcript, t1=0.0, t2=dur, codec=incodec)
+        )
+        inm = audiolabel.LabelManager(
+            codec=incodec
+        )
+        inm.add(tier)
     if dictcodec is None:
         dictcodec = inm.codec
     if outcodec is None:
@@ -378,3 +442,7 @@ if __name__ == '__main__':
         outm.add(wordtier)
     with open(outfile,'wb') as outf:
         outf.write(outm.as_string('praat_short').encode(outcodec))
+
+    if raw2tg_file is not None:
+        with open(raw2tg_file,'wb') as outf:
+            outf.write(inm.as_string('praat_short').encode(outcodec))
