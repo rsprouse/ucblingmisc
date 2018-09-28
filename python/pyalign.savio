@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# Run the p2fa align.py script with the python executable, passing all
+# input arguments to align.py.
+
+# This script existed because when align.py was symlinked into
+# /usr/local/bin it didn't find the acoustic models. This issue has
+# now been fixed in align.py, and this script exists only for
+# compatibility, and is now deprecated.
+
+# RLS 10/26/2010
+
+#echo ***The 'pyalign' command is deprecated.***
+#echo Please use 'align.py' instead. The calling syntax is the same.
+#read -p "Press a key to continue."
+
+PYTHON=/usr/bin/python
+ALIGN=/global/home/groups/fc_phonlab/aligners/p2fa/align.py
+
+# NOTE: Simply executing with backticks doesn't work right:
+# `$PYTHON $ALIGN $@`    <--- Don't do this
+
+fun="$PYTHON $ALIGN $@"
+eval $fun
