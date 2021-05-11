@@ -25,4 +25,6 @@ RUN wget https://github.com/MontrealCorpusTools/Montreal-Forced-Aligner/releases
 RUN find ${APP_HOME}/montreal-forced-aligner/bin -type l -exec ln -s {} /usr/local/bin \;
 
 # Add mfa_align_single script
-RUN cd /usr/local/bin && wget https://raw.githubusercontent.com/rsprouse/ucblingmisc/master/python/mfa_align_single && chmod +x mfa_align_single
+RUN cd /usr/local/bin && \
+    wget https://raw.githubusercontent.com/rsprouse/ucblingmisc/master/python/mfa_align_single && \
+    chmod +x mfa_align_single
