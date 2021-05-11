@@ -9,13 +9,13 @@ The `mfa_align_single` script has been added as a convenient way to perform alig
 To get the image for use with Docker:
 
 ```bash
-docker pull public.ecr.aws/w5x7g6y7/phonlab/mfa:1.0.1
+docker pull public.ecr.aws/w5x7g6y7/mfa:1.0.1
 ```
 
 To use with singularity:
 
 ```bash
-singularity pull docker://public.ecr.aws/w5x7g6y7/phonlab/mfa:1.0.1
+singularity pull docker://public.ecr.aws/w5x7g6y7/mfa:1.0.1
 ```
 
 Singularity converts the Docker image to its own format. The result is a single file named `mfa_1.0.1.sif`.
@@ -33,7 +33,7 @@ docker run \
     -v /path/to/corpus/:/corpus \    # map local corpus dir to /corpus in container
     -v /path/to/dictfile:/dict \     # map local dictionary file to /dict in container
     -v /path/to/outputdir/:/outdir \ # map local output dir to /outdir in container
-    phonlab/mfa:1.0.1 \              # docker image
+    mfa:1.0.1 \              # docker image
     mfa_align /corpus /dict english /outdir  # mfa_align command and args
 ```
 
@@ -48,14 +48,14 @@ docker run \
     -v /home/ec2-user/corpus/:/audio \
     -v /home/ec2-user/dict.txt:/dict \
     -v /home/ec2-user/myout/:/outdir \
-    phonlab/mfa:1.0.1 mfa_align_single \
-    /audio/SN109_FIN_STRESS_006.wav .lab /dict english /outdir/SN109_FIN_STRESS_006.TextGrid
+    mfa:1.0.1 \
+    mfa_align_single /audio/SN109_FIN_STRESS_006.wav .lab /dict english /outdir/SN109_FIN_STRESS_006.TextGrid
 ```
 
 To get full details of running `mfa_align_single` do:
 
 ```bash
-docker run phonlab/mfa:1.0.1 mfa_align_single --help
+docker run mfa:1.0.1 mfa_align_single --help
 ```
 
 ## Using the image in singularity
@@ -74,9 +74,8 @@ And the `mfa_align_single` equivalent is:
 
 ```bash
 singularity run \
-    phonlab/mfa:1.0.1 mfa_align_single \
     /path/to/mfa_1.0.1.sif \
-    /path/to/SN109_FIN_STRESS_006.wav .lab /path/to/dict english /path/to/outdir/SN109_FIN_STRESS_006.TextGrid
+    mfa_align_single /path/to/SN109_FIN_STRESS_006.wav .lab /path/to/dict english /path/to/outdir/SN109_FIN_STRESS_006.TextGrid
 ```
 
 ## TODO
