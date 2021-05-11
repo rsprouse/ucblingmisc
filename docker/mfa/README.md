@@ -83,6 +83,7 @@ singularity run \
    - How do we use other pretrained models?
    - Will the container run out of space if the input files are large?
    - How do we debug failed alignments? Where do errors go in docker and in singularity?
+   - If executable exits with an error condition, how do we detect it?
    - Do we need to copy additional alignment artifacts, e.g. `oovs_found.txt`, when using `mfa_align_single`?
    - Check ownership of alignment outputs. Ownership by root is not desirable.
    - Keeping docker cleaned up
