@@ -1,0 +1,118 @@
+#!/usr/bin/env python
+
+# A wrapper for running mfa_align on a single file.
+
+import os
+import shutil
+import sys
+import re
+from tempfile import TemporaryDirectory
+import subprocess
+
+standard_usage_str = '''
+Safely run `mfa_align` on a single audio file.
+
+Usage:
+
+mfa_align_single [mfa_align options] wavfile transcript_extension 
+    dictionary_path acoustic_model_path output_textgrid
+'''
+help_usage_str = '''multi_align_single --help|-h'''
+
+def usage():
+    print('\n' + standard_usage_str)
+    print(help_usage_str + '\n')
+
+def help():
+    print(standard_usage_str)
+    print(help_usage_str + '\n')
+    print('''
+`mfa_align_single` creates a temporary 'corpus' of a single audio file
+and related transcription, runs `mfa_align` on the 'corpus', and moves the
+result from a temporary output directory to a specified output directory. 
+The temporary directories are created in a way so that it is safe to run
+multiple instances of `mfa_align_single` in parallel safely without name
+clashes.
+
+The `mfa_align` command is specified by the environment variable
+$MFA_ALIGN_CMD. If that variable is not set or empty, then `mfa_align`
+must be found in $PATH.
+'''
+    )
+    print('''
+
+Parameters
+----------
+
+wavfile
+The name of the input audio file to be aligned.
+
+transcript (full filename or extension only)
+The transcript file to be aligned to the input audio file. If this value
+begins with a '.' that is not followed by slash '/' then it is interepreted
+as a filename extension that replaces the '.wav' portion of the `wavfile`
+value. For example, if `wavfile` is `mydir/words.wav` and `transcript` is
+`.lab`, then `mydir/words.lab` will be used as the transcript file.
+
+dictionary_path
+The `dictionary_path` value to pass to `mfa_align`.
+
+acoustic_model_path
+The `acoustic_model_path` value to pass to `mfa_align`.
+
+output_textgrid
+The name of the output textgrid.
+
+Options
+-------
+
+Options are passed to `mfa_align`. See `mfa_align --help` for a list of
+available options. The `-t TEMP_DIRECTORY` option should not be used
+since `mfa_align_single` supplies its own value for this option.
+'''
+    )
+
+numargs = 5
+if '-t' in sys.argv[1:-numargs]:
+    raise RuntimeError('-t `mfa_align` option must not be used')
+
+try:
+    if sys.argv[1] in ('-h', '--help'):
+        sys.exit(help())
+    wavfile, trans_ext, dictpath, lang, out_tg = sys.argv[-numargs:]
+    if trans_ext.startswith('.') and not trans_ext.startswith('./'):
+        transfile = re.sub('\.wav$', trans_ext, wavfile, re.IGNORECASE)
+    else:
+        transfile = trans_ext
+except (IndexError, ValueError):
+    sys.exit(usage())
+envvar = os.getenv('MFA_ALIGN_CMD')
+align_cmd = envvar if envvar is not None and envvar != '' else 'mfa_align'
+cmdlist = [align_cmd] + sys.argv[1:-numargs]
+
+# Create symlinks to the input audio and transcription files in the
+# temporary corpus directory.
+with TemporaryDirectory() as corpdir:
+    wavfname = os.path.split(wavfile)[-1]
+    trname = re.sub('\.wav$', trans_ext, wavfname, re.IGNORECASE)
+    os.symlink(wavfile, os.path.join(corpdir, wavfname))
+    os.symlink(transfile, os.path.join(corpdir, trname))
+    # Create a temporary dir for mfa to write results to,
+    # then copy output textgrid to out_tg.
+    with TemporaryDirectory() as tmp_mfa_outdir:
+        # mfa_align creates its own temporary dir, and we pass
+        # in a premade dir to use.
+        with TemporaryDirectory() as mfa_tmpdir:
+            cmdlist += [
+                '-t', mfa_tmpdir,
+                corpdir, dictpath, lang, tmp_mfa_outdir
+            ]
+            subprocess.run(cmdlist)
+            os.makedirs(os.path.split(out_tg)[0], exist_ok=True)
+            mfa_tg = os.path.join(
+                tmp_mfa_outdir,
+                os.path.basename(os.path.normpath(corpdir)),
+                re.sub('\.wav$', '.TextGrid', wavfname, re.IGNORECASE)
+            )
+            shutil.copy2(mfa_tg, out_tg)
+            # TODO copy output textgrid to out_tg; what about oovs_found.txt?
