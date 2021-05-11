@@ -13,6 +13,12 @@ cd /path/to/Dockerfile
 docker build --tag mfa:1.0.1 .
 ```
 
+Sometimes it is necessary to add `--no-cache` to pick up changes in an external resource, e.g. if the `mfa_align_single` script has changed.
+
+```bash
+docker build --tag mfa:1.0.1 --no-cache .
+```
+
 ## Pushing to the container registry
 
 To push an image to the container registry on AWS, an IAM user must exist with permission to make changes to the registry. The `aws_access_key_id` and `aws_secret_access_key` values for this user can be stored in the `credentials` file for use with the AWS cli. Once the IAM user is set up and credentials stored, build the image as described above and then do:
