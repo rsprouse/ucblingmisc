@@ -1,6 +1,6 @@
 # `mfa` Docker image
 
-The `mfa` Docker image contains the [Montreal Forced Aligner](https://github.com/MontrealCorpusTools/Montreal-Forced-Aligner) and includes the English pretrained model. This image packages MFA v1.0.1, which is the current stable version. Fixes for multiple bugs are also applied. 
+The `mfa` Docker image contains the [Montreal Forced Aligner](https://github.com/MontrealCorpusTools/Montreal-Forced-Aligner) and includes the English pretrained model. This image packages MFA v1.0.1, which is the current stable version. Fixes for known bugs are also applied.
 
 The `mfa_align_single` script has been added as a convenient way to perform alignment of a single audio file. It is safe to run multiple simultaneous processes of `mfa_align_single` without creating name clashes of temporary files created by the aligner.
 

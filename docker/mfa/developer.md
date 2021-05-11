@@ -10,7 +10,7 @@ To create the `mfa` container do:
 
 ```bash
 cd /path/to/Dockerfile
-docker build --tag phonlab/mfa:1.0.1 .
+docker build --tag mfa:1.0.1 .
 ```
 
 ## Pushing to the container registry
@@ -22,9 +22,9 @@ To push an image to the container registry on AWS, an IAM user must exist with p
 aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/ucblx
 
 # Tag your image so you can push the image to this repository.
-docker tag phonlab/mfa:1.0.1 public.ecr.aws/ucblx/phonlab/mfa:1.0.1
+docker tag mfa:1.0.1 public.ecr.aws/ucblx/mfa:1.0.1
 
 # Push the image to the AWS repository.
-docker push public.ecr.aws/ucblx/phonlab/mfa:1.0.1
+docker push public.ecr.aws/ucblx/mfa:1.0.1
 ```
 
