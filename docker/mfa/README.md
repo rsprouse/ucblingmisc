@@ -9,13 +9,13 @@ The `mfa_align_single` script has been added as a convenient way to perform alig
 To get the image for use with Docker:
 
 ```bash
-docker pull public.ecr.aws/ucblx/phonlab/mfa:1.0.1
+docker pull public.ecr.aws/w5x7g6y7/phonlab/mfa:1.0.1
 ```
 
 To use with singularity:
 
 ```bash
-singularity pull docker://public.ecr.aws/ucblx/phonlab/mfa:1.0.1
+singularity pull docker://public.ecr.aws/w5x7g6y7/phonlab/mfa:1.0.1
 ```
 
 Singularity converts the Docker image to its own format. The result is a single file named `mfa_1.0.1.sif`.

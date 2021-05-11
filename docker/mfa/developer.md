@@ -19,12 +19,12 @@ To push an image to the container registry on AWS, an IAM user must exist with p
 
 ```bash
 # Retrieve an authentication token and authenticate your Docker client to your registry.
-aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/ucblx
+aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/w5x7g6y7
 
 # Tag your image so you can push the image to this repository.
-docker tag mfa:1.0.1 public.ecr.aws/ucblx/mfa:1.0.1
+docker tag mfa:1.0.1 public.ecr.aws/w5x7g6y7/mfa:1.0.1
 
 # Push the image to the AWS repository.
-docker push public.ecr.aws/ucblx/mfa:1.0.1
+docker push public.ecr.aws/w5x7g6y7/mfa:1.0.1
 ```
 
