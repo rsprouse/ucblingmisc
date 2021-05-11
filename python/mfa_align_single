@@ -108,7 +108,6 @@ with TemporaryDirectory() as corpdir:
                 corpdir, dictpath, lang, tmp_mfa_outdir
             ]
             subprocess.run(cmdlist)
-            os.makedirs(os.path.split(out_tg)[0], exist_ok=True)
             mfa_tg = os.path.join(
                 tmp_mfa_outdir,
                 os.path.basename(os.path.normpath(corpdir)),
