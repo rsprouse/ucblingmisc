@@ -13,6 +13,8 @@ cd /path/to/Dockerfile
 docker build --tag mfa:1.0.1 .
 ```
 
+If you haven't cloned this repo on your build machine you can download the `Dockerfile` from this folder in order to run the build.
+
 Sometimes it is necessary to add `--no-cache` to pick up changes in an external resource, e.g. if the `mfa_align_single` script has changed.
 
 ```bash
