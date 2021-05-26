@@ -49,10 +49,11 @@ The name of the input audio file to be aligned.
 
 transcript (full filename or extension only)
 The transcript file to be aligned to the input audio file. If this value
-begins with a '.' that is not followed by slash '/' then it is interepreted
-as a filename extension that replaces the '.wav' portion of the `wavfile`
-value. For example, if `wavfile` is `mydir/words.wav` and `transcript` is
-`.lab`, then `mydir/words.lab` will be used as the transcript file.
+begins with a '.' and is not a relative path beginning with './' or '../'
+then it is interepreted as a filename extension that replaces the '.wav'
+portion of the `wavfile` value. For example, if `wavfile` is
+`mydir/words.wav` and `transcript` is `.lab`, then `mydir/words.lab` will
+be used as the transcript file.
 
 dictionary_path
 The `dictionary_path` value to pass to `mfa_align`.
@@ -80,7 +81,8 @@ try:
     if sys.argv[1] in ('-h', '--help'):
         sys.exit(help())
     wavfile, trans_ext, dictpath, lang, out_tg = sys.argv[-numargs:]
-    if trans_ext.startswith('.') and not trans_ext.startswith('./'):
+    # If trans_ext starts with '.' but not './' or '../' treat it as an extension.
+    if re.match('\.(?!\.?/)', trans_ext) is not None:
         transfile = re.sub('\.wav$', trans_ext, wavfile, re.IGNORECASE)
     else:
         transfile = trans_ext
