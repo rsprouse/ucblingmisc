@@ -86,6 +86,8 @@ try:
         transfile = re.sub('\.wav$', trans_ext, wavfile, re.IGNORECASE)
     else:
         transfile = trans_ext
+    wavfname = os.path.split(wavfile)[-1]
+    trname = os.path.split(transfile)[-1]
 except (IndexError, ValueError):
     sys.exit(usage())
 envvar = os.getenv('MFA_ALIGN_CMD')
@@ -95,8 +97,6 @@ cmdlist = [align_cmd] + sys.argv[1:-numargs]
 # Create symlinks to the input audio and transcription files in the
 # temporary corpus directory.
 with TemporaryDirectory() as corpdir:
-    wavfname = os.path.split(wavfile)[-1]
-    trname = re.sub('\.wav$', trans_ext, wavfname, re.IGNORECASE)
     os.symlink(wavfile, os.path.join(corpdir, wavfname))
     os.symlink(transfile, os.path.join(corpdir, trname))
     # Create a temporary dir for mfa to write results to,
