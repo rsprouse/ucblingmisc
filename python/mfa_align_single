@@ -97,8 +97,8 @@ cmdlist = [align_cmd] + sys.argv[1:-numargs]
 # Create symlinks to the input audio and transcription files in the
 # temporary corpus directory.
 with TemporaryDirectory() as corpdir:
-    os.symlink(wavfile, os.path.join(corpdir, wavfname))
-    os.symlink(transfile, os.path.join(corpdir, trname))
+    os.symlink(os.path.abspath(wavfile), os.path.join(corpdir, wavfname))
+    os.symlink(os.path.abspath(transfile), os.path.join(corpdir, trname))
     # Create a temporary dir for mfa to write results to,
     # then copy output textgrid to out_tg.
     with TemporaryDirectory() as tmp_mfa_outdir:
