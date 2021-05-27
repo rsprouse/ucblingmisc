@@ -110,10 +110,12 @@ with TemporaryDirectory() as corpdir:
                 corpdir, dictpath, lang, tmp_mfa_outdir
             ]
             subprocess.run(cmdlist)
-            mfa_tg = os.path.join(
-                tmp_mfa_outdir,
-                os.path.basename(os.path.normpath(corpdir)),
-                re.sub('\.wav$', '.TextGrid', wavfname, re.IGNORECASE)
+            mfa_tg = os.path.abspath(
+                os.path.join(
+                    tmp_mfa_outdir,
+                    os.path.basename(os.path.normpath(corpdir)),
+                    re.sub('\.wav$', '.TextGrid', wavfname, re.IGNORECASE)
+                )
             )
             shutil.copy2(mfa_tg, out_tg)
             # TODO copy output textgrid to out_tg; what about oovs_found.txt?
