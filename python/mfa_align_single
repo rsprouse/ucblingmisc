@@ -49,11 +49,11 @@ The name of the input audio file to be aligned.
 
 transcript (full filename or extension only)
 The transcript file to be aligned to the input audio file. If this value
-begins with a '.' and is not a relative path beginning with './' or '../'
-then it is interepreted as a filename extension that replaces the '.wav'
-portion of the `wavfile` value. For example, if `wavfile` is
-`mydir/words.wav` and `transcript` is `.lab`, then `mydir/words.lab` will
-be used as the transcript file.
+is '.TextGrid', '.lab', or '.txt', then it is interepreted as a filename
+extension that replaces the '.wav' portion of the `wavfile` value. For example,
+if `wavfile` is `mydir/words.wav` and `transcript` is `.lab`, then
+`mydir/words.lab` will be used as the transcript file. ('.txt' files are
+submitted to `mfa_align` as if they were '.lab' files.)
 
 dictionary_path
 The `dictionary_path` value to pass to `mfa_align`.
@@ -81,13 +81,15 @@ try:
     if sys.argv[1] in ('-h', '--help'):
         sys.exit(help())
     wavfile, trans_ext, dictpath, lang, out_tg = sys.argv[-numargs:]
-    # If trans_ext starts with '.' but not './' or '../' treat it as an extension.
-    if re.match('\.(?!\.?/)', trans_ext) is not None:
+    wavfname = os.path.split(wavfile)[-1]
+    if trans_ext in ('.TextGrid', '.lab', '.txt'):
         transfile = re.sub('\.wav$', trans_ext, wavfile, re.IGNORECASE)
     else:
         transfile = trans_ext
-    wavfname = os.path.split(wavfile)[-1]
-    trname = os.path.split(transfile)[-1]
+        trans_ext = os.path.splitext(transfile)[-1]
+    if trans_ext == '.txt':
+        trans_ext = '.lab'
+    trname = re.sub('\.wav$', trans_ext, wavfname)
 except (IndexError, ValueError):
     sys.exit(usage())
 envvar = os.getenv('MFA_ALIGN_CMD')
@@ -109,7 +111,14 @@ with TemporaryDirectory() as corpdir:
                 '-t', mfa_tmpdir,
                 corpdir, dictpath, lang, tmp_mfa_outdir
             ]
-            subprocess.run(cmdlist)
+            result = subprocess.run(cmdlist, capture_output=True)
+            m = re.search('(?P<logfile>[^ ]+/corpus.log)', result.stdout.decode('ascii'))
+            if m is not None:
+                with open(m.groupdict()['logfile'], 'r') as logh:
+                    content = logh.readlines()
+                print('Log says:\n', content, '\n\n')
+            print('mfa_align stdout:\n', result.stdout.decode('utf-8'))
+            print('mfa_align stderr:\n', result.stderr.decode('utf-8'))
             mfa_tg = os.path.abspath(
                 os.path.join(
                     tmp_mfa_outdir,
