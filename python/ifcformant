@@ -44,12 +44,12 @@ def usage():
     print('\n' + help_usage_str + '\n')
 
 def version():
-    print """
+    print("""
 ifcformant Version %s
-""" % (VERSION)
+""" % (VERSION))
 
 def help():
-    print """
+    print("""
 ifcformant - IFC formant tracker
 
 ifcformant computes formants, rms, and f0 measures of an input audio file at
@@ -164,7 +164,7 @@ Examples:
      Do analysis of male.wav and generate a report with a header row.
      Print default fields using format %%0.2f to the output file subj1.txt.
 
-""" % (standard_usage_str, short_usage_str, ver_usage_str, help_usage_str, default_fields, default_fields)
+""" % (standard_usage_str, short_usage_str, ver_usage_str, help_usage_str, default_fields, default_fields))
 
 def do_header(pparams):
     out = pparams['outfile']
@@ -214,7 +214,7 @@ if __name__ == '__main__':
     try:
         opts, args = getopt.getopt(sys.argv[1:], "s:o:f:p:t:S:x:e:h:v", ["speaker=", "output=", "fields=", "fpfmt=", "timefmt=", "sep=", "sox=", "effects=", "help", "version", "print-header", "no-midpt"])
     except getopt.GetoptError as err:
-        print str(err)
+        print(str(err))
         usage()
         sys.exit(2)
     speaker = None
@@ -273,6 +273,6 @@ if __name__ == '__main__':
     try:
         myproc = subprocess.Popen(soxcmd, stdout = subprocess.PIPE, shell=True)
     except Exception as e:
-        print "Error running system command '{}': ".format(e.strerror)
+        print("Error running system command '{}': ".format(e.strerror))
         raise 
     do_frames(myproc, speaker=speaker, pparams=print_params)
