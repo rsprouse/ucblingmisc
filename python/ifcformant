@@ -1,0 +1,278 @@
+#!/usr/bin/python
+
+# Run the IFC formant tracker on an audio file, resampling to 12000Hz, as needed.
+
+# The ifcformant library is compiled from ifcformant.pyx (first down to
+# ifcformant.c, then ifcformant.so (linux) or ifcformant.pyd (Windows).
+import ifcformant
+import numpy as np
+import subprocess
+import getopt
+import sys
+
+VERSION = "0.9.7"
+
+DELY = 5     # number of frames to delay output
+nsamp = 120  # number of samples in an analysis frame
+rate = 12000 # sample rate required by IFC formant tracker
+Bps = 2 # Bytes per sample
+bufsize = nsamp * Bps  # number of bytes to read for each analysis frame
+default_fields = 'rms,f1,f2,f3,f4,f0'
+default_fpfmt =  '%0.1f'
+default_sep =  '\t'
+default_timefmt =  'sec%0.4f'
+speakermap = {'male': 0, 'female': 1, 'child': 2}
+analysismap = {'f0': 0, 'f1': 1, 'f2': 2, 'f3': 3, 'f4': 4, 'rms': 5}  # map fields to indexes in ifc_para
+soxcmd = "sox"  # Name of sox command. Can be overridden with --sox parameter.
+soxeffects = "" # sox effects string to be applied when running soxcmd. Can be overridden with --efffects parameter.
+
+standard_usage_str = '''ifcformant --speaker=male|female|child [--output=outfile]
+      [--fields=fieldlist] [--fpfmt=floating_point_format]
+      [--timefmt=time_format] [--sep=separator] [--sox=soxcmd]
+      [--effects=soxeffects] [--print-header] [--no-midpt]
+      audiofile'''
+short_usage_str = '''ifcformant -s male|female|child [-o outfile]
+      [-f fieldlist] [-p floating_point_format] [-t time_format] [-S separator]
+      [-x soxcmd] [-e soxeffects] [--print-header] [--no-midpt] audiofile'''
+ver_usage_str = 'ifcformant --version|-v'
+help_usage_str = 'ifcformant --help|-h'
+
+def usage():
+    print('\n' + standard_usage_str)
+    print('\n' + short_usage_str)
+    print('\n' + ver_usage_str)
+    print('\n' + help_usage_str + '\n')
+
+def version():
+    print """
+ifcformant Version %s
+""" % (VERSION)
+
+def help():
+    print """
+ifcformant - IFC formant tracker
+
+ifcformant computes formants, rms, and f0 measures of an input audio file at
+10ms intervals and prints a table of results.
+
+The analysis input requires audio with a 12kHz sample rate, and ifcformant
+invokes the sox utility to convert the input audio file to the correct rate.
+Additional effects can be performed by sox during conversion with the
+--effects parameter.
+
+Usage:
+
+    %s
+
+    %s
+
+    %s
+
+    %s
+
+Required arguments:
+
+  --speaker=male|female|child
+  -s male|female|child
+     Speaker type. No default.
+
+  audiofile
+     Input audio file. The audio file can be any file type that is readable by
+     the locally installed version of sox and that has a header accurately
+     describing the audio parameters (rate, bits/sample). sox automatically
+     converts the input audio to the format required by the IFC tracker.
+
+Optional arguments:
+
+  --output=outfile  (Default: STDOUT)
+  -o outfile
+     Output file where results will be written. If no file name is provided,
+     results are written to STDOUT.
+
+  --fields=fieldlist  (Default: %s)
+  -f fieldlist
+     Comma-separated list of fields to print. This list does not include the
+     time field, which always prints as the first field in a row.
+     Valid field names are:
+       'f1', 'f2', 'f3', 'f4' (Formants 1-4)
+       'f0'                   (F0)
+     Default fieldlist is '%s'.
+
+  --fpfmt=floating_point_format  (Default: %%0.1f)
+  -p floating_point_format
+     sprintf-style format for printing floating point measures (excludes
+     time field).
+
+  --timefmt=time_format (Default: sec%%0.4f)
+  -t time_format
+     sprintf-style format for printing the time field. A mandatory prefix also
+     supplies the time unit. The prefix must be one of:
+     'msec','sec','idx'    (Report time in msec, sec, or by frame index)
+
+  --sep=separator  (Default: \\t)
+     Separator character/string between fields. Default is '\\t' (TAB).
+
+  --sox=soxcmd  (Default: empty)
+  -x soxcmd
+     By default ifcformant uses the first system command 'sox' found in
+     the executable search path. Use this option to provide an explicit path
+     to sox, or to name an aliased version of sox in the search path.
+
+  --effects=soxeffects  (Default: empty)
+  -e soxeffects
+     When sox is invoked for sample rate and format conversion, add the
+     effects in this string to the sox effects chain, e.g. sox's 'gain'
+     or 'contrast' effects.
+
+  --print-header
+     Print a header line with column labels before printing analysis results.
+
+  --no-midpt
+     By default, the times reported in the msec and sec fields correspond to
+     the time at the midpoint of the analysis frame, i.e. the first frame
+     (frame index 0) is 5msec/0.005sec, and the next frame is 15msec/0.015sec.
+     When this option is used, the reported time is the beginning of the
+     frame, i.e. the first frame is 0msec/0.000sec and the next 10msec/0.010sec.
+
+Examples:
+
+  ifcformant --speaker=child kid.aiff
+     Do analysis on kid.aiff with child as speaker type. Print to STDOUT.
+     Analysis fields are reported in same order as in original C version.
+     The time field is also printed first, as in the original C, but it
+     is reported in sec rather than the original msec.
+
+  ifcformant --speaker=child --no-midpt kid.aiff
+     Same as preceding example but with time values aligned to the left
+     edge of the analysis frame, as in the original C version (though
+     time is reported in sec rather than msec).
+
+  ifcformant --speaker=child --effects="gain -n -3 contrast" kid.aiff
+     Apply the sox 'gain' and 'contrast' effects to kid.aiff before
+     calculating formants.
+
+  ifcformant --speaker=female --fields=f0 --sep=' ' female.wav
+     Do analysis of female.wav and generate a space-separated two-column
+     report of time and f0 only. The time field is always first and
+     should not be in the --fields list.
+
+  ifcformant --speaker=female --fields=f0 --timefmt=msec%%1d --sep=' ' female.wav
+     Same as preceding example, but time printed in msec with '%%1d'
+     sprintf-style format.
+
+  ifcformant -s male -p %%0.2f -o subj1.txt --print-header male.wav
+     Do analysis of male.wav and generate a report with a header row.
+     Print default fields using format %%0.2f to the output file subj1.txt.
+
+""" % (standard_usage_str, short_usage_str, ver_usage_str, help_usage_str, default_fields, default_fields)
+
+def do_header(pparams):
+    out = pparams['outfile']
+    if pparams['header'] == True:
+        (timetype,timefmt) = pparams['timefmt'].split('%',1)
+        out.write( pparams['sep'].join([timetype] + pparams['fields']) + '\n' )
+
+def do_frames(proc, speaker, pparams):
+    dbuf = np.zeros((nsamp,), dtype = np.int16)
+    ifc_para = np.ones((6,), dtype = np.float32)
+    out = pparams['outfile']
+    if pparams['toffset'] == True:
+        msec_offset = 5
+        sec_offset = 0.005
+    else:
+        msec_offset = 0
+        sec_offset = 0.000
+    do_header(pparams)
+
+    # Initialize, using mode 0 (not sure what this does)
+    ifcformant.ifc_glw_ext_wrap(0, dbuf, ifc_para, speaker)
+
+    
+    (timetype,timefmt) = pparams['timefmt'].split('%',1)
+    mysep = pparams['sep']
+
+    idx = 0 - DELY
+    while True:
+        dbuf = np.fromstring(proc.stdout.read(bufsize), dtype=np.int16)
+        if len(dbuf) == 0:
+            break
+        # Analyze, using mode 1 (not sure what mode does)
+        ifcformant.ifc_glw_ext_wrap(1, dbuf, ifc_para, speaker)
+        if idx >= 0:
+            time = idx
+            if timetype == 'msec':
+                time = idx*10 + msec_offset
+            elif timetype == 'sec':
+                time = idx/100.0 + sec_offset
+            out.write("{0:{fmt}}".format(time, fmt=timefmt))
+            for f in pparams['fields']:
+                out.write(mysep + pparams['fpfmt'] % ifc_para[analysismap[f]])
+            out.write('\n')
+        idx += 1
+    
+if __name__ == '__main__':
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "s:o:f:p:t:S:x:e:h:v", ["speaker=", "output=", "fields=", "fpfmt=", "timefmt=", "sep=", "sox=", "effects=", "help", "version", "print-header", "no-midpt"])
+    except getopt.GetoptError as err:
+        print str(err)
+        usage()
+        sys.exit(2)
+    speaker = None
+    outfile = sys.stdout
+    print_params = {
+        'fields': default_fields.split(','),
+        'fpfmt': default_fpfmt,
+        'timefmt': default_timefmt,
+        'sep': default_sep,
+        'header': False,
+        'toffset': True,
+        'outfile': sys.stdout
+    }
+    for o, a in opts:
+        if o in ("-s", "--speaker"):
+            speaker = speakermap[a] 
+        elif o in ("-o", "--output"):
+            print_params['outfile'] = open(a, 'w')
+        elif o in ("-f", "--fields"):
+            print_params['fields'] = a.replace(' ','').split(',')
+        elif o in ("-p", "--fpfmt"):
+            print_params['fpfmt'] = a
+        elif o in ("-t", "--timefmt"):
+            print_params['timefmt'] = a
+        elif o in ("-S", "--sep"):
+            print_params['sep'] = a
+        elif o in ("-x", "--sox"):
+            soxcmd = a 
+        elif o in ("-e", "--soxeffects"):
+            soxeffects = a 
+        elif o in ("-h", "--help"):
+            help()
+            sys.exit(0)
+        elif o in ("-v", "--version"):
+            version()
+            sys.exit(0)
+        elif o == "--print-header":
+            print_params['header'] = True
+        elif o == "--no-midpt":
+            print_params['toffset'] = False
+        else:
+            usage()
+            sys.exit(2)
+    if speaker == None:
+        usage()
+        sys.exit(2)
+    if len(args) > 1:
+        usage()
+        sys.exit(2)
+    elif len(args) == 0:
+        usage()
+        sys.exit(2)
+    audiofile = '"' + args[0] + '"'
+    soxopts = audiofile + (" -b 16 -c 1 -e signed-integer -r %d -t raw - " % rate)
+    soxcmd = '"' + soxcmd + '" ' + soxopts + soxeffects
+    try:
+        myproc = subprocess.Popen(soxcmd, stdout = subprocess.PIPE, shell=True)
+    except Exception as e:
+        print "Error running system command '{}': ".format(e.strerror)
+        raise 
+    do_frames(myproc, speaker=speaker, pparams=print_params)
