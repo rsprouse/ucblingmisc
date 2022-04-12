@@ -1,0 +1,19 @@
+name: phonlab
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - git
+  - jupyterlab
+  - librosa
+  - montreal-forced-aligner
+  - pandas
+  - pip
+  - python
+  - scipy
+  - seaborn
+  - pip:
+    - praat-parselmouth
+    - git+https://github.com/rsprouse/phonlab
+    - git+https://github.com/rsprouse/audiolabel
+    - git+https://github.com/rsprouse/espspy
